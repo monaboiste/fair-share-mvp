@@ -14,10 +14,10 @@ import com.github.monaboiste.fairshare.settlement.domain.ExplicitIdentityExchang
 import com.github.monaboiste.fairshare.settlement.domain.SettlementName
 import com.github.monaboiste.fairshare.settlement.domain.SettlementNotFound
 import com.github.monaboiste.fairshare.settlement.domain.event.ExchangeRateConfigured
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRateVersions
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ValuationEngine
 import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementProjector
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
-import com.github.monaboiste.fairshare.valuation.ExchangeRateVersions
-import com.github.monaboiste.fairshare.valuation.ValuationEngine
 import java.time.LocalDateTime
 import javax.money.Monetary
 import spock.lang.Specification

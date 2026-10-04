@@ -1,4 +1,4 @@
-package com.github.monaboiste.fairshare.netting;
+package com.github.monaboiste.fairshare.settlement.domain.netting;
 
 import com.github.monaboiste.fairshare.graphs.Edge;
 import com.github.monaboiste.fairshare.graphs.Graph;

@@ -24,11 +24,11 @@ import com.github.monaboiste.fairshare.settlement.domain.Share
 import com.github.monaboiste.fairshare.settlement.domain.WeightedShareAllocation
 import com.github.monaboiste.fairshare.settlement.domain.event.ExchangeRateConfigured
 import com.github.monaboiste.fairshare.settlement.domain.event.ExpenseRecorded
+import com.github.monaboiste.fairshare.settlement.domain.valuation.DoublingValuationEngine
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ValuationEngine
 import com.github.monaboiste.fairshare.settlement.infrastructure.EventSourcedSettlementRepository
 import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementProjector
-import com.github.monaboiste.fairshare.valuation.DoublingValuationEngine
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
-import com.github.monaboiste.fairshare.valuation.ValuationEngine
 import java.time.LocalDate
 import javax.money.CurrencyUnit
 import javax.money.Monetary

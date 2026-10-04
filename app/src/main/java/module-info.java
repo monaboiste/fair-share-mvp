@@ -9,10 +9,10 @@ module com.github.monaboiste.fairshare.app {
     requires com.github.monaboiste.fairshare.graphs;
     requires transitive java.money;
 
-    exports com.github.monaboiste.fairshare.netting;
+    exports com.github.monaboiste.fairshare.settlement.domain.netting;
     exports com.github.monaboiste.fairshare.settlement.application.command;
     exports com.github.monaboiste.fairshare.settlement.application.query;
     exports com.github.monaboiste.fairshare.settlement.domain;
     exports com.github.monaboiste.fairshare.settlement.domain.event;
-    exports com.github.monaboiste.fairshare.valuation;
+    exports com.github.monaboiste.fairshare.settlement.domain.valuation;
 }

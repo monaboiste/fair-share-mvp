@@ -1,7 +1,6 @@
 package com.github.monaboiste.fairshare.settlement.application
 
 import com.github.monaboiste.fairshare.common.queries.RegisteredQueryDispatcher
-import com.github.monaboiste.fairshare.netting.ProposedRepayment
 import com.github.monaboiste.fairshare.pricing.component.Validity
 import com.github.monaboiste.fairshare.quantity.money.Money
 import com.github.monaboiste.fairshare.settlement.application.command.AddParticipant
@@ -23,8 +22,9 @@ import com.github.monaboiste.fairshare.settlement.domain.ExpenseId
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantId
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantName
 import com.github.monaboiste.fairshare.settlement.domain.RepaymentId
+import com.github.monaboiste.fairshare.settlement.domain.netting.ProposedRepayment
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
 import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementProjector
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
 import java.time.LocalDate
 import spock.lang.Specification
 

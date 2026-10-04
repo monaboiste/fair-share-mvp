@@ -1,8 +1,8 @@
 package com.github.monaboiste.fairshare.settlement.application.query;
 
-import com.github.monaboiste.fairshare.netting.ProposedRepayment;
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantId;
 import com.github.monaboiste.fairshare.settlement.domain.SettlementId;
+import com.github.monaboiste.fairshare.settlement.domain.netting.ProposedRepayment;
 import java.util.List;
 import javax.money.CurrencyUnit;
 

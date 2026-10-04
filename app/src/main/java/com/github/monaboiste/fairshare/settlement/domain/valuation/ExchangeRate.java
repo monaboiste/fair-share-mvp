@@ -1,4 +1,4 @@
-package com.github.monaboiste.fairshare.valuation;
+package com.github.monaboiste.fairshare.settlement.domain.valuation;
 
 import com.github.monaboiste.fairshare.pricing.component.ComponentVersionId;
 import com.github.monaboiste.fairshare.pricing.component.SimpleComponentVersion;

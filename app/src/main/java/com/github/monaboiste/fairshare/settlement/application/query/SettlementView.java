@@ -1,11 +1,11 @@
 package com.github.monaboiste.fairshare.settlement.application.query;
 
-import com.github.monaboiste.fairshare.netting.Obligation;
 import com.github.monaboiste.fairshare.quantity.money.Money;
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantId;
 import com.github.monaboiste.fairshare.settlement.domain.SettlementId;
 import com.github.monaboiste.fairshare.settlement.domain.SettlementStatus;
-import com.github.monaboiste.fairshare.valuation.ExchangeRateVersion;
+import com.github.monaboiste.fairshare.settlement.domain.netting.Obligation;
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRateVersion;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
