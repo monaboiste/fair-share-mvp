@@ -28,10 +28,10 @@ import com.github.monaboiste.fairshare.settlement.domain.event.ExpenseRecorded
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementEvent
 import com.github.monaboiste.fairshare.settlement.domain.model.Settlement
 import com.github.monaboiste.fairshare.settlement.domain.model.SettlementRepository
-import com.github.monaboiste.fairshare.valuation.DoublingValuationEngine
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
-import com.github.monaboiste.fairshare.valuation.ExchangeRateOverride
-import com.github.monaboiste.fairshare.valuation.ValuationEngine
+import com.github.monaboiste.fairshare.settlement.domain.valuation.DoublingValuationEngine
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRateOverride
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ValuationEngine
 import java.time.LocalDate
 import java.time.LocalDateTime
 import spock.lang.Specification

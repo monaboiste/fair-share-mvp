@@ -7,7 +7,7 @@ import com.github.monaboiste.fairshare.settlement.domain.ExpenseId;
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantId;
 import com.github.monaboiste.fairshare.settlement.domain.Share;
 import com.github.monaboiste.fairshare.settlement.domain.ShareAllocation;
-import com.github.monaboiste.fairshare.valuation.ExchangeRate;
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate;
 import java.time.LocalDate;
 import java.util.List;
 

@@ -32,7 +32,7 @@ import com.github.monaboiste.fairshare.settlement.domain.event.SettlementClosed
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementEvent
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementOpened
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementReopened
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.money.Monetary

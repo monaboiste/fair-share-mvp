@@ -24,7 +24,7 @@ import com.github.monaboiste.fairshare.settlement.domain.event.RepaymentCancelle
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementEvent
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementOpened
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementRenamed
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
 import java.time.Instant
 import java.time.LocalDate
 import javax.money.Monetary

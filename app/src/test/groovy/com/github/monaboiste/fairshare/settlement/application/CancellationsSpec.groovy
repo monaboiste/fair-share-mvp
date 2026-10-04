@@ -1,6 +1,5 @@
 package com.github.monaboiste.fairshare.settlement.application
 
-import com.github.monaboiste.fairshare.netting.Obligation
 import com.github.monaboiste.fairshare.quantity.money.Money
 import com.github.monaboiste.fairshare.settlement.application.command.AddParticipant
 import com.github.monaboiste.fairshare.settlement.application.command.CancelExpense
@@ -28,6 +27,7 @@ import com.github.monaboiste.fairshare.settlement.domain.RepaymentNotFound
 import com.github.monaboiste.fairshare.settlement.domain.SettlementNotFound
 import com.github.monaboiste.fairshare.settlement.domain.event.ExpenseCancelled
 import com.github.monaboiste.fairshare.settlement.domain.event.RepaymentCancelled
+import com.github.monaboiste.fairshare.settlement.domain.netting.Obligation
 import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementProjector
 import java.time.LocalDate
 import spock.lang.Specification

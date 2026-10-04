@@ -2,10 +2,6 @@ package com.github.monaboiste.fairshare.settlement.application.query.handler;
 
 import com.github.monaboiste.fairshare.common.Result;
 import com.github.monaboiste.fairshare.common.queries.QueryHandler;
-import com.github.monaboiste.fairshare.netting.Netting;
-import com.github.monaboiste.fairshare.netting.Obligations;
-import com.github.monaboiste.fairshare.netting.ParticipantComparator;
-import com.github.monaboiste.fairshare.netting.ProposedRepayment;
 import com.github.monaboiste.fairshare.settlement.application.query.GetProposedRepayments;
 import com.github.monaboiste.fairshare.settlement.application.query.ParticipantView;
 import com.github.monaboiste.fairshare.settlement.application.query.ProposedRepaymentGraphView;
@@ -14,6 +10,10 @@ import com.github.monaboiste.fairshare.settlement.application.query.SettlementVi
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantId;
 import com.github.monaboiste.fairshare.settlement.domain.SettlementNotFound;
 import com.github.monaboiste.fairshare.settlement.domain.SettlementRejection;
+import com.github.monaboiste.fairshare.settlement.domain.netting.Netting;
+import com.github.monaboiste.fairshare.settlement.domain.netting.Obligations;
+import com.github.monaboiste.fairshare.settlement.domain.netting.ParticipantComparator;
+import com.github.monaboiste.fairshare.settlement.domain.netting.ProposedRepayment;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 

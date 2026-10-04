@@ -1,9 +1,9 @@
 package com.github.monaboiste.fairshare.settlement.application.query
 
-import com.github.monaboiste.fairshare.netting.ProposedRepayment
 import com.github.monaboiste.fairshare.quantity.money.Money
 import com.github.monaboiste.fairshare.settlement.application.SettlementTestConfiguration
 import com.github.monaboiste.fairshare.settlement.domain.ParticipantId
+import com.github.monaboiste.fairshare.settlement.domain.netting.ProposedRepayment
 import spock.lang.Specification
 
 class ProposedRepaymentGraphViewSpec extends Specification {

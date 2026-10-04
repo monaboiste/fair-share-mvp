@@ -27,8 +27,8 @@ import com.github.monaboiste.fairshare.settlement.domain.SelfDirectedRepayment
 import com.github.monaboiste.fairshare.settlement.domain.SettlementName
 import com.github.monaboiste.fairshare.settlement.domain.SettlementNotFound
 import com.github.monaboiste.fairshare.settlement.domain.event.RepaymentRecorded
+import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
 import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementProjector
-import com.github.monaboiste.fairshare.valuation.ExchangeRate
 import java.time.LocalDate
 import spock.lang.Specification
 
