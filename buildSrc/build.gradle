@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.spring.boot.plugin)
     implementation(libs.spotless.plugin)
     implementation(libs.errorprone.plugin)
     implementation(libs.quodana.plugin)

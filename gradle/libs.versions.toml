@@ -6,6 +6,14 @@ jgrapht = "1.5.2"
 money-api = "1.1"
 moneta = "1.4.5"
 
+# Infrastructure
+spring-boot = "4.1.1"
+spring = "7.0.9"
+postgresql = "42.7.13"
+flyway = "12.4.0"
+jackson = "2.21.5"
+testcontainers = "2.0.5"
+
 # Development
 jspecify = "1.0.1"
 
@@ -37,6 +45,20 @@ dependency-analysis = "3.18.0"
 # Gradle's `alias` can be used only on project level.
 
 [libraries]
+
+spring-boot-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spring-boot = { module = "org.springframework.boot:spring-boot", version.ref = "spring-boot" }
+spring-context = { module = "org.springframework:spring-context", version.ref = "spring" }
+spring-core = { module = "org.springframework:spring-core", version.ref = "spring" }
+spring-beans = { module = "org.springframework:spring-beans", version.ref = "spring" }
+spring-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "spring" }
+spring-tx = { module = "org.springframework:spring-tx", version.ref = "spring" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
 annotations = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 

@@ -1,0 +1,255 @@
+[
+  {
+    "type": "SettlementOpened",
+    "payload": {
+      "name": "  Holiday  ",
+      "currency": "EUR"
+    }
+  },
+  {
+    "type": "SettlementRenamed",
+    "payload": {
+      "name": "Mountains"
+    }
+  },
+  {
+    "type": "SettlementClosed",
+    "payload": {}
+  },
+  {
+    "type": "SettlementReopened",
+    "payload": {}
+  },
+  {
+    "type": "ParticipantAdded",
+    "payload": {
+      "participantId": "00000000-0000-0000-0000-000000000001",
+      "name": "Sam"
+    }
+  },
+  {
+    "type": "ParticipantRenamed",
+    "payload": {
+      "participantId": "00000000-0000-0000-0000-000000000001",
+      "name": "Samuel"
+    }
+  },
+  {
+    "type": "ParticipantRemoved",
+    "payload": {
+      "participantId": "00000000-0000-0000-0000-000000000001"
+    }
+  },
+  {
+    "type": "ExpenseCancelled",
+    "payload": {
+      "expenseId": "00000000-0000-0000-0000-000000000003"
+    }
+  },
+  {
+    "type": "RepaymentCancelled",
+    "payload": {
+      "repaymentId": "00000000-0000-0000-0000-000000000004"
+    }
+  },
+  {
+    "type": "RepaymentRecorded",
+    "payload": {
+      "repaymentId": "00000000-0000-0000-0000-000000000004",
+      "paidOn": "2026-10-04",
+      "payer": "00000000-0000-0000-0000-000000000001",
+      "recipient": "00000000-0000-0000-0000-000000000002",
+      "amount": {
+        "amount": "12345678901234567890.01",
+        "currency": "EUR"
+      }
+    }
+  },
+  {
+    "type": "ExchangeRateConfigured",
+    "payload": {
+      "version": {
+        "id": "00000000-0000-0000-0000-000000000005",
+        "rate": {
+          "source": "USD",
+          "target": "EUR",
+          "value": "0.987654321012"
+        },
+        "from": "2026-01-01T00:00:00.123456789",
+        "to": null,
+        "definedAt": "2025-12-31T23:59:59.987654321"
+      }
+    }
+  },
+  {
+    "type": "ExpenseRecorded",
+    "payload": {
+      "expenseId": "00000000-0000-0000-0000-000000000003",
+      "description": "Dinner",
+      "incurredOn": "2026-10-04",
+      "payer": "00000000-0000-0000-0000-000000000001",
+      "originalAmount": {
+        "amount": "100",
+        "currency": "USD"
+      },
+      "allocation": {
+        "kind": "equal",
+        "entries": [
+          {
+            "participantId": "00000000-0000-0000-0000-000000000002"
+          },
+          {
+            "participantId": "00000000-0000-0000-0000-000000000001"
+          }
+        ]
+      },
+      "exchangeRateOverride": null,
+      "componentVersionId": "00000000-0000-0000-0000-000000000005",
+      "exchangeRate": {
+        "source": "USD",
+        "target": "EUR",
+        "value": "0.987654321012"
+      },
+      "valuation": {
+        "amount": "98.77",
+        "currency": "EUR"
+      },
+      "shares": [
+        {
+          "participantId": "00000000-0000-0000-0000-000000000002",
+          "amount": {
+            "amount": "49.39",
+            "currency": "EUR"
+          }
+        },
+        {
+          "participantId": "00000000-0000-0000-0000-000000000001",
+          "amount": {
+            "amount": "49.38",
+            "currency": "EUR"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "ExpenseRecorded",
+    "payload": {
+      "expenseId": "00000000-0000-0000-0000-000000000003",
+      "description": "Dinner",
+      "incurredOn": "2026-10-04",
+      "payer": "00000000-0000-0000-0000-000000000001",
+      "originalAmount": {
+        "amount": "100",
+        "currency": "USD"
+      },
+      "allocation": {
+        "kind": "exact",
+        "entries": [
+          {
+            "participantId": "00000000-0000-0000-0000-000000000002",
+            "amount": {
+              "amount": "60",
+              "currency": "USD"
+            }
+          },
+          {
+            "participantId": "00000000-0000-0000-0000-000000000001",
+            "amount": {
+              "amount": "40",
+              "currency": "USD"
+            }
+          }
+        ]
+      },
+      "exchangeRateOverride": {
+        "source": "USD",
+        "target": "EUR",
+        "value": "0.987654321012"
+      },
+      "componentVersionId": "00000000-0000-0000-0000-000000000005",
+      "exchangeRate": {
+        "source": "USD",
+        "target": "EUR",
+        "value": "0.987654321012"
+      },
+      "valuation": {
+        "amount": "98.77",
+        "currency": "EUR"
+      },
+      "shares": [
+        {
+          "participantId": "00000000-0000-0000-0000-000000000002",
+          "amount": {
+            "amount": "49.39",
+            "currency": "EUR"
+          }
+        },
+        {
+          "participantId": "00000000-0000-0000-0000-000000000001",
+          "amount": {
+            "amount": "49.38",
+            "currency": "EUR"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "ExpenseRecorded",
+    "payload": {
+      "expenseId": "00000000-0000-0000-0000-000000000003",
+      "description": "Dinner",
+      "incurredOn": "2026-10-04",
+      "payer": "00000000-0000-0000-0000-000000000001",
+      "originalAmount": {
+        "amount": "100",
+        "currency": "USD"
+      },
+      "allocation": {
+        "kind": "weighted",
+        "entries": [
+          {
+            "participantId": "00000000-0000-0000-0000-000000000002",
+            "weight": 3
+          },
+          {
+            "participantId": "00000000-0000-0000-0000-000000000001",
+            "weight": 2
+          }
+        ]
+      },
+      "exchangeRateOverride": {
+        "source": "USD",
+        "target": "EUR",
+        "value": "0.987654321012"
+      },
+      "componentVersionId": "00000000-0000-0000-0000-000000000005",
+      "exchangeRate": {
+        "source": "USD",
+        "target": "EUR",
+        "value": "0.987654321012"
+      },
+      "valuation": {
+        "amount": "98.77",
+        "currency": "EUR"
+      },
+      "shares": [
+        {
+          "participantId": "00000000-0000-0000-0000-000000000002",
+          "amount": {
+            "amount": "49.39",
+            "currency": "EUR"
+          }
+        },
+        {
+          "participantId": "00000000-0000-0000-0000-000000000001",
+          "amount": {
+            "amount": "49.38",
+            "currency": "EUR"
+          }
+        }
+      ]
+    }
+  }
+]
