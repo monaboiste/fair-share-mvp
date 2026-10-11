@@ -26,6 +26,47 @@ class SettlementEventCodecSpec extends Specification {
         events.findAll { it.type() == "ExpenseRecorded" }.every { it.valuation().value() == 98.77G && it.shares()*.amount()*.value() == [49.39G, 49.38G] }
     }
 
+    def "an Expense with #shape Shares is rejected instead of losing its contributions"() {
+        given:
+        def codec = new SettlementEventCodec()
+        def mapper = new ObjectMapper()
+        def fixtures = mapper.readTree(getClass().getResource("/settlement-events-v1.json"))
+        def document = fixtures.find { it.get("type").textValue() == "ExpenseRecorded" }.get("payload").deepCopy()
+        document.set("shares", mapper.readTree(shares))
+
+        when:
+        codec.decode("ExpenseRecorded", 1, document.toString())
+
+        then:
+        thrown(IllegalArgumentException)
+
+        where:
+        shape          | shares
+        "null"         | "null"
+        "object"       | "{}"
+        "string"       | "\"lost\""
+        "number"       | "0"
+        "boolean"      | "true"
+    }
+
+    def "a #type fact requires an object document rather than #shape"() {
+        given:
+        def codec = new SettlementEventCodec()
+
+        when:
+        codec.decode(type, 1, json)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        where:
+        type                 | shape     | json
+        "SettlementClosed"   | "array"   | "[]"
+        "SettlementClosed"   | "string"  | "\"closed\""
+        "SettlementReopened" | "number"  | "1"
+        "SettlementReopened" | "boolean" | "true"
+    }
+
     def "a fractional Share weight is never silently truncated"() {
         given:
         def codec = new SettlementEventCodec()
@@ -55,14 +96,14 @@ class SettlementEventCodecSpec extends Specification {
         "type"        | "java.lang.Runtime"            | 1       | "{}"
         "version"     | "SettlementOpened"             | 2       | "{}"
         "invalid JSON"| "SettlementOpened"             | 1       | "not json"
-        "value"       | "SettlementOpened"             | 1       | '{"name":1,"currency":"EUR"}'
-        "allocation"  | "ExpenseRecorded"              | 1       | '{"expenseId":"00000000-0000-0000-0000-000000000003","description":"Dinner","incurredOn":"2026-10-04","payer":"00000000-0000-0000-0000-000000000001","originalAmount":{"amount":"100","currency":"USD"},"allocation":{"kind":"unknown","entries":[]}}'
+        "value"       | "SettlementOpened"             | 1       | """{"name":1,"currency":"EUR"}"""
+        "allocation"  | "ExpenseRecorded"              | 1       | """{"expenseId":"00000000-0000-0000-0000-000000000003","description":"Dinner","incurredOn":"2026-10-04","payer":"00000000-0000-0000-0000-000000000001","originalAmount":{"amount":"100","currency":"USD"},"allocation":{"kind":"unknown","entries":[]}}"""
     }
 
     def "an independent opening document preserves spacing and currency"() {
         given:
         def codec = new SettlementEventCodec()
-        def json = '{"name":"  Holiday  ","currency":"EUR"}'
+        def json = """{"name":"  Holiday  ","currency":"EUR"}"""
 
         when:
         def event = codec.decode("SettlementOpened", 1, json)

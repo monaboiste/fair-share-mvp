@@ -15,6 +15,92 @@ import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
 class PostgresProjectionSpec extends Specification {
+    def "a Settlement document with #shape #collection is rejected without advancing projection"() {
+        given:
+        def database = new PostgresFixture()
+        def store = database.store()
+        def id = SettlementId.random()
+        def views = projection(database)
+        def opening = store.append(id, 0, [pending(new SettlementOpened("Holiday", Monetary.getCurrency("EUR")))])
+        views.apply(new CommittedSettlementLog.Batch(opening.events()))
+        def rename = store.append(id, 1, [pending(new SettlementRenamed("Mountains"))])
+        database.jdbc.update("UPDATE settlement_projection SET document = jsonb_set(document, ARRAY[?]::text[], ?::jsonb) WHERE id = ?", collection, json, id.value())
+
+        when:
+        views.findById(id)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        views.apply(new CommittedSettlementLog.Batch(rename.events()))
+
+        then:
+        thrown(IllegalArgumentException)
+        views.checkpoint() == 1
+        store.load(id).size() == 2
+
+        when:
+        database.jdbc.update("UPDATE settlement_projection SET document = jsonb_set(document, ARRAY[?]::text[], '[]'::jsonb) WHERE id = ?", collection, id.value())
+        views.apply(new CommittedSettlementLog.Batch(rename.events()))
+
+        then:
+        views.findById(id).get().name() == "Mountains"
+        views.checkpoint() == 2
+
+        cleanup:
+        database?.close()
+
+        where:
+        collection      | shape             | json
+        "participants"  | "null"            | "null"
+        "retired"       | "null"            | "null"
+        "expenses"      | "null"            | "null"
+        "repayments"    | "null"            | "null"
+        "obligations"   | "null"            | "null"
+        "balances"      | "null"            | "null"
+        "exchangeRates" | "null"            | "null"
+        "participants"  | "object"          | "{}"
+        "obligations"   | "object"          | "{}"
+        "balances"      | "string"          | "\"lost\""
+        "retired"       | "numeric entries" | "[1]"
+    }
+
+    def "a Settlement document rejects #format #field without narrowing its value"() {
+        given:
+        def database = new PostgresFixture()
+        def store = database.store()
+        def id = SettlementId.random()
+        def opening = store.append(id, 0, [pending(new SettlementOpened("Holiday", Monetary.getCurrency("EUR")))])
+        def views = projection(database)
+        views.apply(new CommittedSettlementLog.Batch(opening.events()))
+        database.jdbc.update("UPDATE settlement_projection SET document = jsonb_set(document, ARRAY[?]::text[], ?::jsonb) WHERE id = ?", field, json, id.value())
+
+        when:
+        views.findById(id)
+
+        then:
+        thrown(IllegalArgumentException)
+        views.checkpoint() == 1
+        store.load(id) == opening.events()
+
+        cleanup:
+        database?.close()
+
+        where:
+        field           | format       | json
+        "schemaVersion" | "fractional" | "1.5"
+        "schemaVersion" | "overflowed" | "4294967297"
+        "schemaVersion" | "string"     | "\"1\""
+        "schemaVersion" | "boolean"    | "true"
+        "schemaVersion" | "unsupported"| "2"
+        "version"       | "fractional" | "1.5"
+        "version"       | "overflowed" | "18446744073709551617"
+        "version"       | "string"     | "\"1\""
+        "version"       | "zero"       | "0"
+        "version"       | "negative"   | "-1"
+    }
+
     def "a transient live projection failure retries from the same checkpoint"() {
         given:
         def database = new PostgresFixture()
@@ -24,7 +110,7 @@ class PostgresProjectionSpec extends Specification {
         def views = projection(database)
         def consumer = new SettlementLogConsumer(store, views, 1, 10, 10)
         consumer.start()
-        database.jdbc.execute('CREATE FUNCTION retry_checkpoint() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION \'try again\' USING ERRCODE = \'40001\'; END $$')
+        database.jdbc.execute("CREATE FUNCTION retry_checkpoint() RETURNS trigger LANGUAGE plpgsql AS \$\$ BEGIN RAISE EXCEPTION 'try again' USING ERRCODE = '40001'; END \$\$")
         database.jdbc.execute("CREATE TRIGGER retry_checkpoint BEFORE UPDATE ON projection_checkpoint FOR EACH ROW EXECUTE FUNCTION retry_checkpoint()")
 
         when:
@@ -159,7 +245,7 @@ class PostgresProjectionSpec extends Specification {
         def store = database.store()
         def committed = store.append(id, 0, [pending(new SettlementOpened("Holiday", Monetary.getCurrency("EUR"))), pending(new SettlementRenamed("Mountains"))])
         def views = projection(database)
-        database.jdbc.execute('CREATE FUNCTION reject_checkpoint() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION \'checkpoint unavailable\'; END $$')
+        database.jdbc.execute("CREATE FUNCTION reject_checkpoint() RETURNS trigger LANGUAGE plpgsql AS \$\$ BEGIN RAISE EXCEPTION 'checkpoint unavailable'; END \$\$")
         database.jdbc.execute("CREATE TRIGGER reject_checkpoint BEFORE UPDATE ON projection_checkpoint FOR EACH ROW EXECUTE FUNCTION reject_checkpoint()")
 
         when:

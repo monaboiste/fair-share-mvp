@@ -149,14 +149,28 @@ public final class SettlementEventCodec {
 
     JsonNode parse(String document) {
         try {
-            return mapper.readTree(document).requireNonNull();
+            return requireObject(mapper.readTree(document).requireNonNull());
         } catch (JsonProcessingException failure) {
             throw new IllegalArgumentException("Invalid durable JSON", failure);
         }
     }
 
+    static JsonNode requireObject(JsonNode json) {
+        if (!json.isObject()) {
+            throw new IllegalArgumentException("Expected durable JSON object");
+        }
+        return json;
+    }
+
+    static JsonNode requireArray(JsonNode json) {
+        if (!json.isArray()) {
+            throw new IllegalArgumentException("Expected durable JSON array");
+        }
+        return json;
+    }
+
     static String text(JsonNode json, String key) {
-        JsonNode value = json.required(key);
+        JsonNode value = requireObject(json).required(key);
         if (!value.isTextual()) {
             throw new IllegalArgumentException("Expected string: " + key);
         }
@@ -245,10 +259,7 @@ public final class SettlementEventCodec {
     }
 
     ShareAllocation allocation(JsonNode json) {
-        JsonNode entries = json.required("entries");
-        if (!entries.isArray()) {
-            throw new IllegalArgumentException("Share Allocation entries must be an array");
-        }
+        JsonNode entries = requireArray(requireObject(json).required("entries"));
         return switch (text(json, "kind")) {
             case "equal" -> {
                 List<ParticipantId> recipients = new ArrayList<>();
@@ -289,8 +300,9 @@ public final class SettlementEventCodec {
 
     List<Share> shares(JsonNode json) {
         List<Share> shares = new ArrayList<>();
-        json.forEach(
-                entry -> shares.add(new Share(participant(entry, "participantId"), money(entry.required("amount")))));
+        requireArray(json)
+                .forEach(entry ->
+                        shares.add(new Share(participant(entry, "participantId"), money(entry.required("amount")))));
         return List.copyOf(shares);
     }
 }
