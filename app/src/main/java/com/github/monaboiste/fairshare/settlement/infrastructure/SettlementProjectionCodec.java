@@ -1,6 +1,7 @@
 package com.github.monaboiste.fairshare.settlement.infrastructure;
 
 import static com.github.monaboiste.fairshare.settlement.infrastructure.SettlementEventCodec.participant;
+import static com.github.monaboiste.fairshare.settlement.infrastructure.SettlementEventCodec.requireArray;
 import static com.github.monaboiste.fairshare.settlement.infrastructure.SettlementEventCodec.text;
 import static com.github.monaboiste.fairshare.settlement.infrastructure.SettlementEventCodec.uuid;
 
@@ -108,16 +109,26 @@ final class SettlementProjectionCodec {
 
     SettlementProjector.Projection decode(String json) {
         JsonNode document = codec.parse(json);
-        if (document.required("schemaVersion").intValue() != 1) {
+        JsonNode schemaVersion = document.required("schemaVersion");
+        if (!schemaVersion.isIntegralNumber() || !schemaVersion.canConvertToInt() || schemaVersion.intValue() != 1) {
             throw new IllegalArgumentException("Unsupported projection schema");
         }
+        JsonNode version = document.required("version");
+        if (!version.isIntegralNumber() || !version.canConvertToLong() || version.longValue() < 1) {
+            throw new IllegalArgumentException("Invalid projected stream version");
+        }
         List<ParticipantView> participants = new ArrayList<>();
-        document.required("participants")
+        requireArray(document.required("participants"))
                 .forEach(p -> participants.add(new ParticipantView(participant(p, "participantId"), text(p, "name"))));
         Set<ParticipantId> retired = new HashSet<>();
-        document.required("retired").forEach(id -> retired.add(new ParticipantId(UUID.fromString(id.textValue()))));
+        requireArray(document.required("retired")).forEach(id -> {
+            if (!id.isTextual()) {
+                throw new IllegalArgumentException("Expected retired Participant identifier string");
+            }
+            retired.add(new ParticipantId(UUID.fromString(id.textValue())));
+        });
         List<ExpenseView> expenses = new ArrayList<>();
-        document.required("expenses").forEach(entry -> {
+        requireArray(document.required("expenses")).forEach(entry -> {
             ExpenseRecorded fact = (ExpenseRecorded)
                     codec.decode("ExpenseRecorded", 1, entry.required("fact").toString());
             expenses.add(new ExpenseView(
@@ -134,7 +145,7 @@ final class SettlementProjectionCodec {
                     ExpenseView.Status.valueOf(text(entry, "status"))));
         });
         List<RepaymentView> repayments = new ArrayList<>();
-        document.required("repayments")
+        requireArray(document.required("repayments"))
                 .forEach(entry -> repayments.add(new RepaymentView(
                         new RepaymentId(uuid(entry, "id")),
                         LocalDate.parse(text(entry, "paidOn")),
@@ -143,22 +154,22 @@ final class SettlementProjectionCodec {
                         codec.money(entry.required("amount")),
                         RepaymentView.Status.valueOf(text(entry, "status")))));
         List<Obligation<ParticipantId>> obligations = new ArrayList<>();
-        document.required("obligations")
+        requireArray(document.required("obligations"))
                 .forEach(entry -> obligations.add(new Obligation<>(
                         participant(entry, "debtor"),
                         participant(entry, "creditor"),
                         codec.money(entry.required("amount")))));
         LinkedHashMap<ParticipantId, Money> balances = new LinkedHashMap<>();
-        document.required("balances")
+        requireArray(document.required("balances"))
                 .forEach(entry ->
                         balances.put(participant(entry, "participantId"), codec.money(entry.required("amount"))));
         List<ExchangeRateVersion> rates = new ArrayList<>();
-        document.required("exchangeRates").forEach(entry -> rates.add(codec.rateVersion(entry)));
+        requireArray(document.required("exchangeRates")).forEach(entry -> rates.add(codec.rateVersion(entry)));
         SettlementView view = new SettlementView(
                 new SettlementId(uuid(document, "id")),
                 text(document, "name"),
                 Monetary.getCurrency(text(document, "currency")),
-                document.required("version").longValue(),
+                version.longValue(),
                 participants,
                 expenses,
                 repayments,
