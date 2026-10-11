@@ -1,0 +1,36 @@
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+
+plugins {
+    id("org.springframework.boot")
+}
+
+springBoot {
+    mainClass = "com.github.monaboiste.fairshare.settlement.infrastructure.runtime.FairShareApplication"
+}
+
+def modular = Attribute.of("fairshare.modular", Boolean)
+dependencies {
+    artifactTypes.getByName("jar").attributes.attribute(modular, false)
+    registerTransform(AutomaticModule) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar").attribute(modular, false)
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar").attribute(modular, true)
+    }
+    implementation(libs.spring.boot)
+    implementation(libs.spring.context)
+    implementation(libs.spring.core)
+    implementation(libs.spring.beans)
+    implementation(libs.spring.jdbc)
+    implementation(libs.spring.tx)
+    implementation(libs.flyway.core)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.core)
+    runtimeOnly(libs.postgresql)
+    runtimeOnly(libs.flyway.postgresql)
+    testImplementation(libs.testcontainers.postgresql)
+}
+
+configurations.configureEach {
+    if (canBeResolved) {
+        attributes.attribute(modular, true)
+    }
+}

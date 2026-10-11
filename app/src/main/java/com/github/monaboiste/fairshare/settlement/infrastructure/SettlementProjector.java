@@ -59,7 +59,7 @@ public final class SettlementProjector
         project(projections, events);
     }
 
-    private Map<SettlementId, Projection> project(
+    static Map<SettlementId, Projection> project(
             Map<SettlementId, Projection> current, List<EventEnvelope<SettlementId, SettlementEvent>> events) {
         Map<SettlementId, Projection> staged = new HashMap<>();
         for (EventEnvelope<SettlementId, SettlementEvent> event : events) {
@@ -452,5 +452,5 @@ public final class SettlementProjector
                 .anyMatch(participant -> participant.id().equals(participantId));
     }
 
-    private record Projection(SettlementView view, Set<ParticipantId> retiredParticipantIds) {}
+    record Projection(SettlementView view, Set<ParticipantId> retiredParticipantIds) {}
 }
