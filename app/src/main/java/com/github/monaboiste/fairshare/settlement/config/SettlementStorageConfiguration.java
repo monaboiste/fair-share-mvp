@@ -1,15 +1,13 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.runtime;
+package com.github.monaboiste.fairshare.settlement.config;
 
 import com.github.monaboiste.fairshare.settlement.infrastructure.PostgresEventStore;
 import com.github.monaboiste.fairshare.settlement.infrastructure.PostgresSettlementProjection;
 import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementEventCodec;
 import java.util.Properties;
 import javax.sql.DataSource;
-import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.support.JdbcTransactionManager;
@@ -17,12 +15,13 @@ import org.springframework.jdbc.support.JdbcTransactionManager;
 @Configuration(proxyBeanMethods = false)
 public class SettlementStorageConfiguration {
     @Bean
-    DataSource dataSource(Environment environment) {
-        int timeout = databaseTimeout(environment);
-        var source = new DriverManagerDataSource(
-                environment.getRequiredProperty("fairshare.database.url"),
-                environment.getRequiredProperty("fairshare.database.username"),
-                environment.getRequiredProperty("fairshare.database.password"));
+    DataSource dataSource(
+            @Value("${fairshare.database.url}") String url,
+            @Value("${fairshare.database.username}") String username,
+            @Value("${fairshare.database.password}") String password,
+            @Value("${fairshare.database.timeout-seconds:10}") int timeout) {
+        databaseTimeout(timeout);
+        var source = new DriverManagerDataSource(url, username, password);
         Properties properties = new Properties();
         properties.setProperty("connectTimeout", Integer.toString(timeout));
         properties.setProperty("socketTimeout", Integer.toString(timeout));
@@ -32,21 +31,14 @@ public class SettlementStorageConfiguration {
         return source;
     }
 
-    @Bean(initMethod = "migrate")
-    Flyway migrations(DataSource source) {
-        return Flyway.configure().dataSource(source).load();
-    }
-
     @Bean
-    @DependsOn("migrations")
-    JdbcTemplate jdbc(DataSource source, Environment environment) {
+    JdbcTemplate jdbc(DataSource source, @Value("${fairshare.database.timeout-seconds:10}") int timeout) {
         var jdbc = new JdbcTemplate(source);
-        jdbc.setQueryTimeout(databaseTimeout(environment));
+        jdbc.setQueryTimeout(databaseTimeout(timeout));
         return jdbc;
     }
 
-    static int databaseTimeout(Environment environment) {
-        int timeout = environment.getProperty("fairshare.database.timeout-seconds", Integer.class, 10);
+    static int databaseTimeout(int timeout) {
         if (timeout < 1) {
             throw new IllegalArgumentException("Database timeout must be positive");
         }

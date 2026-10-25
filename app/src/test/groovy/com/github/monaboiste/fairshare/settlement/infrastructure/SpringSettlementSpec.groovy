@@ -27,6 +27,9 @@ import com.github.monaboiste.fairshare.settlement.application.query.GetSettlemen
 import com.github.monaboiste.fairshare.settlement.application.query.GetSettlementHistory
 import com.github.monaboiste.fairshare.settlement.application.query.SettlementViews
 import com.github.monaboiste.fairshare.settlement.application.query.handler.GetSettlementHandler
+import com.github.monaboiste.fairshare.settlement.config.FairShareConfiguration
+import com.github.monaboiste.fairshare.settlement.config.SettlementRuntimeConfiguration
+import com.github.monaboiste.fairshare.settlement.config.SettlementStorageConfiguration
 import com.github.monaboiste.fairshare.settlement.domain.EqualShareAllocation
 import com.github.monaboiste.fairshare.settlement.domain.ExpenseDescription
 import com.github.monaboiste.fairshare.settlement.domain.ExpenseId
@@ -40,8 +43,6 @@ import com.github.monaboiste.fairshare.settlement.domain.SettlementStatus
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementOpened
 import com.github.monaboiste.fairshare.settlement.domain.model.SettlementRepository
 import com.github.monaboiste.fairshare.settlement.domain.valuation.ExchangeRate
-import com.github.monaboiste.fairshare.settlement.infrastructure.runtime.FairShareConfiguration
-import com.github.monaboiste.fairshare.settlement.infrastructure.runtime.SettlementRuntimeConfiguration
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -56,6 +57,70 @@ import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
 class SpringSettlementSpec extends Specification {
+    def "typed database settings use the #settings timeout without automatic schema setup"() {
+        given:
+        def context = new AnnotationConfigApplicationContext()
+        def properties = [
+            "fairshare.database.url": "jdbc:postgresql://localhost:1/not_connected",
+            "fairshare.database.username": "example",
+            "fairshare.database.password": "secret"
+        ]
+        if (configured != null) {
+            properties.put("fairshare.database.timeout-seconds", configured)
+        }
+        context.environment.propertySources.addFirst(new MapPropertySource("database", properties))
+        context.register(SettlementStorageConfiguration)
+
+        when:
+        context.refresh()
+        def jdbc = context.getBean(org.springframework.jdbc.core.JdbcTemplate)
+        def source = context.getBean(javax.sql.DataSource)
+
+        then:
+        jdbc.queryTimeout == seconds
+        source.url == "jdbc:postgresql://localhost:1/not_connected"
+        source.username == "example"
+        source.password == "secret"
+        source.connectionProperties.getProperty("connectTimeout") == seconds.toString()
+        source.connectionProperties.getProperty("socketTimeout") == seconds.toString()
+        source.connectionProperties.getProperty("cancelSignalTimeout") == seconds.toString()
+        source.connectionProperties.getProperty("options") == "-c statement_timeout=${milliseconds}"
+
+        cleanup:
+        context?.close()
+
+        where:
+        settings   | configured | seconds | milliseconds
+        "default"  | null       | 10      | 10000
+        "explicit" | "3"        | 3       | 3000
+    }
+
+    def "a #setting value of #value prevents ready Spring dispatch"() {
+        given:
+        def database = new PostgresFixture()
+        def context = configuredApplication(database)
+        context.environment.propertySources.addFirst(new MapPropertySource("invalid", [(setting): value]))
+
+        when:
+        context.refresh()
+
+        then:
+        thrown(org.springframework.beans.BeansException)
+        !context.active
+
+        cleanup:
+        context?.close()
+        database?.close()
+
+        where:
+        setting                              | value
+        "fairshare.database.timeout-seconds" | "0"
+        "fairshare.database.timeout-seconds" | "-1"
+        "fairshare.consumer.batch-limit"     | "0"
+        "fairshare.consumer.poll-millis"     | "0"
+        "fairshare.consumer.retry-millis"    | "0"
+    }
+
     def "a #registration #family handler prevents Spring startup"() {
         given:
         def database = new PostgresFixture()

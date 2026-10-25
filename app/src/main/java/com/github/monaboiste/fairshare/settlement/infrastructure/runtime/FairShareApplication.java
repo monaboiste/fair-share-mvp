@@ -1,8 +1,8 @@
 package com.github.monaboiste.fairshare.settlement.infrastructure.runtime;
 
+import com.github.monaboiste.fairshare.settlement.config.FairShareConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
-import org.springframework.core.env.Profiles;
 
 public final class FairShareApplication {
     private FairShareApplication() {}
@@ -10,9 +10,6 @@ public final class FairShareApplication {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(FairShareConfiguration.class);
         application.setWebApplicationType(WebApplicationType.NONE);
-        var context = application.run(args);
-        if (context.getEnvironment().acceptsProfiles(Profiles.of("rebuild"))) {
-            context.close();
-        }
+        application.run(args);
     }
 }

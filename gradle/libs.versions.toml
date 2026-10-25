@@ -10,8 +10,8 @@ moneta = "1.4.5"
 spring-boot = "4.1.1"
 spring = "7.0.9"
 postgresql = "42.7.13"
-flyway = "12.4.0"
 jackson = "2.21.5"
+jackson-annotations = "2.21"
 testcontainers = "2.0.5"
 
 # Development
@@ -54,10 +54,9 @@ spring-beans = { module = "org.springframework:spring-beans", version.ref = "spr
 spring-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "spring" }
 spring-tx = { module = "org.springframework:spring-tx", version.ref = "spring" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-annotations" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
 annotations = { module = "org.jspecify:jspecify", version.ref = "jspecify" }

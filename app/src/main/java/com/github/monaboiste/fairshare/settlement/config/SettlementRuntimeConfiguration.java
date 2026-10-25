@@ -1,4 +1,4 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.runtime;
+package com.github.monaboiste.fairshare.settlement.config;
 
 import com.github.monaboiste.fairshare.common.Result;
 import com.github.monaboiste.fairshare.common.commands.Command;
@@ -18,25 +18,30 @@ import com.github.monaboiste.fairshare.settlement.infrastructure.SettlementLogCo
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 @Import({SettlementStorageConfiguration.class, SettlementHandlersConfiguration.class})
 public class SettlementRuntimeConfiguration {
     @Bean(initMethod = "start", destroyMethod = "stop")
     SettlementLogConsumer consumer(
-            PostgresEventStore events, PostgresSettlementProjection views, Environment environment) {
+            PostgresEventStore events,
+            PostgresSettlementProjection views,
+            @Value("${fairshare.consumer.batch-limit:64}") int batchLimit,
+            @Value("${fairshare.consumer.poll-millis:100}") long pollMillis,
+            @Value("${fairshare.consumer.retry-millis:1000}") long retryMillis,
+            @Value("${fairshare.database.timeout-seconds:10}") int databaseTimeout) {
         return new SettlementLogConsumer(
                 events,
                 views,
-                environment.getProperty("fairshare.consumer.batch-limit", Integer.class, 64),
-                environment.getProperty("fairshare.consumer.poll-millis", Long.class, 100L),
-                environment.getProperty("fairshare.consumer.retry-millis", Long.class, 1000L),
-                (2L * SettlementStorageConfiguration.databaseTimeout(environment) + 5L) * 1000L);
+                batchLimit,
+                pollMillis,
+                retryMillis,
+                (2L * SettlementStorageConfiguration.databaseTimeout(databaseTimeout) + 5L) * 1000L);
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.runtime;
+package com.github.monaboiste.fairshare.settlement.config;
 
 import com.github.monaboiste.fairshare.settlement.application.command.handler.AddParticipantHandler;
 import com.github.monaboiste.fairshare.settlement.application.command.handler.CancelExpenseHandler;

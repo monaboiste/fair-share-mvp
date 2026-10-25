@@ -1,65 +1,115 @@
 # Fair Share
 
-Fair Share helps groups of people settle shared expenses in a simple and transparent way.
-
-Imagine a group of friends going on a weekend trip to the mountains: one person pays for the accommodation, another for
-groceries, someone else for fuel, and some expenses are shared only between part of the group. Fair Share keeps track of
-who paid for what, applies the appropriate split rules, and calculates who owes whom at the end of the trip.
-
-Expenses can also be made in different currencies, while preserving the exchange rate used at the time of each expense
-so that historical settlements remain consistent.
+Fair Share records shared Expenses and derives Proposed Repayments between Participants.
+A Settlement retains its financial history and frozen Expense Valuations.
 
 ## Local runtime
 
-Requires Java 25 from `.sdkmanrc` and Docker. PostgreSQL 18.3 is pinned with native ARM64 support. Only PostgreSQL runs
-in Compose; the Spring Boot 4.1.1 JVM runs on the host. There is no HTTP interface, authentication or deployment setup.
+Use Java 25 from `.sdkmanrc` and Docker.
+PostgreSQL runs in Compose. The Spring Boot JVM runs on the host.
+
+No HTTP interface, authentication or deployment setup exists.
 
 ```sh
 export JAVA_HOME="$HOME/.local/bin/sdkman/candidates/java/25-librca"
 export PATH="$JAVA_HOME/bin:$PATH"
 docker compose up -d --wait
+./scripts/setup.sh
 ./gradlew :app:bootRun
 ```
 
-If your Docker CLI does not discover the Compose plugin, use the equivalent `docker-compose` commands.
+Use `docker-compose` if the Docker CLI cannot discover the Compose plugin.
+The setup script selects that fallback automatically.
 
-Flyway applies versioned SQL migrations at startup. The application resumes its durable projection checkpoint and
-catches up to the startup committed high-water mark before typed command/query dispatch becomes ready. Commands succeed
-at durable append, not projection completion. Live queries may briefly lag, including `SettlementNotFound` for a
-just-opened Settlement. History reads the authoritative stream. Database failure never selects an in-memory fallback.
+### Explicit fresh-database setup
 
-Development-only defaults: database `fairshare`, username `fairshare_dev`, password `local_dev_only`, localhost port
-5432. Override `FAIRSHARE_DATABASE_URL`, `FAIRSHARE_DATABASE_USERNAME`, `FAIRSHARE_DATABASE_PASSWORD` for the JVM;
-Compose shares username/password and accepts `FAIRSHARE_DATABASE_PORT`. Changing the port also requires changing the
-JDBC URL. Existing volumes retain their initialized credentials. Keep real credentials outside version control. Polling
-settings are `FAIRSHARE_BATCH_LIMIT` (64 whole commits), `FAIRSHARE_POLL_MILLIS` (100), and `FAIRSHARE_RETRY_MILLIS`
-(1000).
-`FAIRSHARE_DATABASE_TIMEOUT_SECONDS` (10, positive) bounds connection, socket, cancellation and SQL statement waits;
-shutdown stops between complete batches and reports failure if its derived deadline is exceeded. Do not disable these
-bounds through JDBC URL options. A startup lock/query timeout fails recovery instead of exposing ready dispatch.
+Run `scripts/setup.sh` once, only for a fresh database.
+It uses containerized `psql` and needs no host `psql` installation.
 
-Stop the JVM with Ctrl-C. `docker compose down` stops PostgreSQL without deleting the named `settlement-data` volume;
-restart with `docker compose up -d --wait` to retain event history and views. Never remove the volume unless discarding
-all local financial history is intentional.
+Schema and sample creation share one transaction. A failure leaves no partial setup.
+The script refuses an occupied `public` schema.
+
+The script never resets, deletes or truncates financial history.
+Existing databases need no setup or data conversion for this change.
+
+Canonical SQL lives in `scripts/postgres`, outside application resources.
+The executable artifact contains neither Flyway nor schema SQL.
+
+Schema upgrades stay outside application scope.
+The application and container startup do not execute setup or migrations.
+
+### Sample Settlement
+
+The sample Settlement identifier is `10000000-0000-0000-0000-000000000001`.
+Amy pays USD 100 for Dinner at an Exchange Rate of 0.9 EUR.
+The EUR 90 Valuation assigns EUR 45 to each Participant.
+
+Bob repays EUR 10 to Amy.
+Amy has a EUR 35 Balance, and Bob has a EUR -35 Balance.
+The Proposed Repayment transfers EUR 35 from Bob to Amy.
+
+Setup seeds only authoritative events, stream versions, complete append metadata and the global cursor.
+Normal startup derives projection documents and advances the checkpoint.
+
+### Configuration and operation
+
+Development defaults use database `fairshare`, username `fairshare_dev`, password `local_dev_only` and localhost port
+5432. Keep real credentials outside version control.
+
+Set `FAIRSHARE_DATABASE_URL`, `FAIRSHARE_DATABASE_USERNAME` and `FAIRSHARE_DATABASE_PASSWORD` for the JVM.
+Compose shares username/password and accepts `FAIRSHARE_DATABASE_PORT`.
+Change the JDBC URL when you change the port.
+
+Existing volumes retain their initialized credentials. Consumer settings are `FAIRSHARE_BATCH_LIMIT` (64 whole commits),
+`FAIRSHARE_POLL_MILLIS` (100) and `FAIRSHARE_RETRY_MILLIS` (1000).
+
+`FAIRSHARE_DATABASE_TIMEOUT_SECONDS` defaults to 10 and must stay positive.
+It bounds connection, socket, cancellation and SQL statement waits.
+Do not disable these bounds through JDBC URL options.
+
+Startup recovers to the committed high-water mark before typed command/query dispatch becomes ready.
+A startup lock or query timeout fails recovery instead of accepting dispatch.
+
+Commands succeed at durable append, not projection completion.
+Live queries can briefly lag, including `SettlementNotFound` for a new Settlement.
+History reads the authoritative stream.
+
+Database failure never selects an in-memory fallback.
+Shutdown stops between complete batches and reports failure if its derived deadline expires.
+
+Stop the JVM with Ctrl-C.
+`docker compose down` stops PostgreSQL and retains the named `settlement-data` volume.
+
+Restart with `docker compose up -d --wait` to retain event history and views.
+Do not repeat setup or remove the volume.
 
 ## Recovery and offline rebuild
 
-Transient projection database failures retry without advancing the failed checkpoint. Unsupported durable schemas or
-invalid financial events stop projection progress and log an error; no event is skipped. Startup recovery failure fails
-startup. Investigate and repair the compatibility/application fault before restarting. Never blindly retry a command
-whose append might already have committed; request idempotency and automatic command retries are not implemented.
+Transient projection database failures retry without advancing the failed checkpoint.
+Unsupported durable schemas or invalid financial events stop projection progress and log an error.
+The consumer skips no events.
 
-Stop the normal JVM first, keep PostgreSQL running, then rebuild:
+Startup recovery failure fails startup.
+Repair the compatibility or application fault before you restart.
+Do not blindly retry a command whose append can already exist.
+
+Request idempotency and automatic command retries remain outside scope.
+
+Stop the normal JVM first. Keep PostgreSQL active, then rebuild:
 
 ```sh
 ./gradlew :app:bootRun --args='--spring.profiles.active=rebuild'
 ```
 
-The rebuild process exits after replay. A database advisory lock prevents normal processing and rebuild from running
-together. Rebuild reads the event log in whole batches and replaces all documents plus checkpoint in one transaction;
-failure preserves the previously published views/checkpoint. Readers see the old or complete new state. This
-deliberately uses one long transaction for offline maintenance, not online generation swapping. Restart the normal JVM
-afterward.
+The rebuild process exits after replay through the ordinary Spring shutdown hook.
+A database advisory lock prevents normal processing and rebuild from concurrent execution.
+
+Rebuild reads whole event batches and replaces all documents plus checkpoint in one transaction.
+Failure preserves the previous views and checkpoint.
+Readers see the old or complete new state.
+
+Offline maintenance uses one long transaction, not online generation replacement.
+Restart the normal JVM after rebuild.
 
 ## Verification
 
@@ -68,6 +118,8 @@ afterward.
 ./gradlew coverageCheck mutationCheck scan
 ```
 
-Durability specifications use isolated real PostgreSQL Testcontainers and require Docker; unavailable Docker fails
-tests. Fast domain and in-memory specifications remain available. Serialized appends ensure safe global replay order,
-trading write throughput for correctness at the intended one-instance, modest-volume scale.
+Durability specifications use isolated real PostgreSQL Testcontainers and need Docker.
+Unavailable Docker fails tests. Fast domain and in-memory specifications also remain available.
+
+Serialized appends preserve safe global replay order.
+They exchange write throughput for correctness at the intended one-instance scale.
