@@ -15,6 +15,54 @@ import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
 class PostgresProjectionSpec extends Specification {
+    def "a legacy projection retains ordered stored financial facts and raw historical names after its next write"() {
+        given:
+        def database = new PostgresFixture()
+        def store = database.store()
+        def id = new SettlementId(UUID.fromString("10000000-0000-0000-0000-000000000001"))
+        def views = projection(database)
+        def events = [pending(new SettlementOpened("Initial", Monetary.getCurrency("EUR")))] + (1..6).collect { pending(new SettlementRenamed("Historical")) }
+        views.apply(new CommittedSettlementLog.Batch(store.append(id, 0, events).events()))
+        database.jdbc.update("UPDATE settlement_projection SET document = ?::jsonb WHERE id = ?", getClass().getResource("/settlement-projection-v1.json").text, id.value())
+
+        when:
+        def legacy = views.findById(id).get()
+        views.apply(new CommittedSettlementLog.Batch(store.append(id, 7, [pending(new SettlementRenamed("Next"))]).events()))
+        def stored = projection(database).findById(id).get()
+
+        then:
+        legacy.name() == "  Historical Settlement  "
+        stored.name() == "Next"
+        stored.version() == 8
+        stored.participants()*.name() == ["", "  Amy  "]
+        stored.participants()*.id()*.value() == [new UUID(0, 2), new UUID(0, 1)]
+        stored.expenses() == legacy.expenses()
+        stored.expenses()*.status()*.name() == ["CANCELLED"]
+        stored.expenses()*.valuation()*.value() == [98.77G]
+        stored.expenses().first().shares()*.amount()*.value() == [49.39G, 49.38G]
+        stored.repayments() == legacy.repayments()
+        stored.repayments()*.amount()*.value() == [10G]
+        stored.obligations() == legacy.obligations()
+        stored.obligations()*.from()*.value() == [new UUID(0, 1)]
+        stored.obligations()*.to()*.value() == [new UUID(0, 2)]
+        stored.balances().keySet()*.value() == [new UUID(0, 2), new UUID(0, 1)]
+        stored.balances().values()*.value() == [10G, -10G]
+        stored.exchangeRates() == legacy.exchangeRates()
+        stored.exchangeRates().first().validity().from() == null
+        stored.exchangeRates().first().validity().to().toString() == "2026-12-31T23:59:59.123456789"
+
+        when:
+        def retired = new ParticipantId(new UUID(0, 6))
+        views.apply(new CommittedSettlementLog.Batch(store.append(id, 8, [pending(new ParticipantAdded(retired, "Replacement"))]).events()))
+
+        then:
+        thrown(IllegalStateException)
+        views.checkpoint() == 8
+
+        cleanup:
+        database?.close()
+    }
+
     def "a Settlement document with #shape #collection is rejected without advancing projection"() {
         given:
         def database = new PostgresFixture()
@@ -64,6 +112,13 @@ class PostgresProjectionSpec extends Specification {
         "obligations"   | "object"          | "{}"
         "balances"      | "string"          | "\"lost\""
         "retired"       | "numeric entries" | "[1]"
+        "participants"  | "null element"    | "[null]"
+        "retired"       | "null element"    | "[null]"
+        "expenses"      | "null element"    | "[null]"
+        "repayments"    | "null element"    | "[null]"
+        "obligations"   | "null element"    | "[null]"
+        "balances"      | "null element"    | "[null]"
+        "exchangeRates" | "null element"    | "[null]"
     }
 
     def "a Settlement document rejects #format #field without narrowing its value"() {
@@ -99,6 +154,12 @@ class PostgresProjectionSpec extends Specification {
         "version"       | "string"     | "\"1\""
         "version"       | "zero"       | "0"
         "version"       | "negative"   | "-1"
+        "version"       | "null"       | "null"
+        "version"       | "boolean"    | "true"
+        "schemaVersion" | "null"       | "null"
+        "status"        | "ordinal"    | "0"
+        "status"        | "spaced"     | "\" OPEN \""
+        "status"        | "null"       | "null"
     }
 
     def "a transient live projection failure retries from the same checkpoint"() {

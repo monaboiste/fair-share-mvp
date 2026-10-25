@@ -1,5 +1,8 @@
 # Persist Settlements in PostgreSQL
 
+ADR-0012 supersedes the Flyway migration decision below.
+All other decisions remain accepted.
+
 Use a custom PostgreSQL event log with Spring JDBC and one JSONB projection document per Settlement. Current queries
 load whole Settlements; Java projection and Netting logic remain unchanged. The existing app module owns Spring Boot
 runtime, IoC handler registration, PostgreSQL adapters and consumer lifecycle. Domain source and core modules remain

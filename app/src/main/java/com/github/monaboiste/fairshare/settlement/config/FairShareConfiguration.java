@@ -1,13 +1,13 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.runtime;
+package com.github.monaboiste.fairshare.settlement.config;
 
 import com.github.monaboiste.fairshare.settlement.infrastructure.PostgresEventStore;
 import com.github.monaboiste.fairshare.settlement.infrastructure.PostgresSettlementProjection;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 @Import({FairShareConfiguration.Normal.class, FairShareConfiguration.Rebuild.class})
@@ -23,9 +23,10 @@ public class FairShareConfiguration {
     static class Rebuild {
         @Bean
         ApplicationRunner rebuild(
-                PostgresEventStore events, PostgresSettlementProjection views, Environment environment) {
-            return _ -> views.rebuildOffline(
-                    events, environment.getProperty("fairshare.consumer.batch-limit", Integer.class, 64));
+                PostgresEventStore events,
+                PostgresSettlementProjection views,
+                @Value("${fairshare.consumer.batch-limit:64}") int batchLimit) {
+            return _ -> views.rebuildOffline(events, batchLimit);
         }
     }
 }

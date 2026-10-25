@@ -1,8 +1,9 @@
 package com.github.monaboiste.fairshare.settlement.infrastructure
 
-import org.flywaydb.core.Flyway
+import org.springframework.core.io.ClassPathResource
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 import org.springframework.jdbc.support.JdbcTransactionManager
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -15,13 +16,20 @@ class PostgresFixture implements AutoCloseable {
     final JdbcTemplate jdbc
     final JdbcTransactionManager transactions
 
-    PostgresFixture() {
+    PostgresFixture(boolean schema = true) {
         new JdbcTemplate(new DriverManagerDataSource(connectionUrl("test"), database.username, database.password))
                 .execute("CREATE DATABASE ${databaseName}")
         dataSource = new DriverManagerDataSource(connectionUrl(databaseName), database.username, database.password)
-        Flyway.configure().dataSource(dataSource).load().migrate()
+        if (schema) {
+            new ResourceDatabasePopulator(new ClassPathResource("schema.sql")).execute(dataSource)
+        }
         jdbc = new JdbcTemplate(dataSource)
         transactions = new JdbcTransactionManager(dataSource)
+    }
+
+    def setup(String suffix = "") {
+        def sql = ["fresh.sql", "schema.sql", "sample.sql"].collect { new ClassPathResource(it).inputStream.text }.join("\n")
+        database.execInContainer("psql", "-X", "--single-transaction", "--set=ON_ERROR_STOP=1", "--username=${database.username}".toString(), "--dbname=${databaseName}".toString(), "--command=${sql}\n${suffix}".toString())
     }
 
     void awaitProjectionLockWait() {

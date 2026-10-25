@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "10000000-0000-0000-0000-000000000001",
+  "name": "  Historical Settlement  ",
+  "currency": "EUR",
+  "version": 7,
+  "status": "OPEN",
+  "participants": [
+    {"participantId": "00000000-0000-0000-0000-000000000002", "name": ""},
+    {"participantId": "00000000-0000-0000-0000-000000000001", "name": "  Amy  "}
+  ],
+  "retired": ["00000000-0000-0000-0000-000000000006"],
+  "expenses": [{
+    "status": "CANCELLED",
+    "fact": {
+      "expenseId": "00000000-0000-0000-0000-000000000003",
+      "description": "Dinner",
+      "incurredOn": "2026-10-04",
+      "payer": "00000000-0000-0000-0000-000000000001",
+      "originalAmount": {"amount": "100", "currency": "USD"},
+      "allocation": {
+        "kind": "equal",
+        "entries": [
+          {"participantId": "00000000-0000-0000-0000-000000000002"},
+          {"participantId": "00000000-0000-0000-0000-000000000001"}
+        ]
+      },
+      "exchangeRateOverride": null,
+      "componentVersionId": "00000000-0000-0000-0000-000000000005",
+      "exchangeRate": {"source": "USD", "target": "EUR", "value": "0.987654321012"},
+      "valuation": {"amount": "98.77", "currency": "EUR"},
+      "shares": [
+        {"participantId": "00000000-0000-0000-0000-000000000002", "amount": {"amount": "49.39", "currency": "EUR"}},
+        {"participantId": "00000000-0000-0000-0000-000000000001", "amount": {"amount": "49.38", "currency": "EUR"}}
+      ]
+    }
+  }],
+  "repayments": [{
+    "id": "00000000-0000-0000-0000-000000000004",
+    "paidOn": "2026-10-04",
+    "payer": "00000000-0000-0000-0000-000000000002",
+    "recipient": "00000000-0000-0000-0000-000000000001",
+    "status": "ACTIVE",
+    "amount": {"amount": "10", "currency": "EUR"}
+  }],
+  "obligations": [{
+    "debtor": "00000000-0000-0000-0000-000000000001",
+    "creditor": "00000000-0000-0000-0000-000000000002",
+    "amount": {"amount": "10", "currency": "EUR"}
+  }],
+  "balances": [
+    {"participantId": "00000000-0000-0000-0000-000000000002", "amount": {"amount": "10", "currency": "EUR"}},
+    {"participantId": "00000000-0000-0000-0000-000000000001", "amount": {"amount": "-10", "currency": "EUR"}}
+  ],
+  "exchangeRates": [{
+    "id": "00000000-0000-0000-0000-000000000005",
+    "definedAt": "2026-01-01T00:00",
+    "rate": {"source": "USD", "target": "EUR", "value": "0.987654321012"},
+    "from": null,
+    "to": "2026-12-31T23:59:59.123456789"
+  }]
+}
