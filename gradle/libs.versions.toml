@@ -48,6 +48,7 @@ dependency-analysis = "3.18.0"
 
 spring-boot-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 spring-boot = { module = "org.springframework.boot:spring-boot", version.ref = "spring-boot" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
 spring-context = { module = "org.springframework:spring-context", version.ref = "spring" }
 spring-core = { module = "org.springframework:spring-core", version.ref = "spring" }
 spring-beans = { module = "org.springframework:spring-beans", version.ref = "spring" }

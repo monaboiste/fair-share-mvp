@@ -1,15 +1,11 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.format;
+package com.github.monaboiste.fairshare.settlement.infrastructure.codecs;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -103,22 +99,7 @@ public final class DurableJson {
 
     private static <T> void scalar(
             SimpleModule module, Class<T> type, Function<String, T> decode, Function<T, String> encode) {
-        module.addSerializer(type, new JsonSerializer<>() {
-            @Override
-            public void serialize(
-                    T value, com.fasterxml.jackson.core.JsonGenerator generator, SerializerProvider provider)
-                    throws IOException {
-                generator.writeString(encode.apply(value));
-            }
-        });
-        module.addDeserializer(type, new JsonDeserializer<>() {
-            @Override
-            public T deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-                if (!parser.hasToken(JsonToken.VALUE_STRING)) {
-                    return type.cast(context.handleUnexpectedToken(type, parser));
-                }
-                return decode.apply(parser.getText());
-            }
-        });
+        module.addSerializer(type, new StringScalarEncoder<>(encode));
+        module.addDeserializer(type, new StringScalarDecoder<>(type, decode));
     }
 }

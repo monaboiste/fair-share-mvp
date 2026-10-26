@@ -1,4 +1,4 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.format;
+package com.github.monaboiste.fairshare.settlement.infrastructure.codecs;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -72,12 +72,12 @@ final class DurableMixins {
         abstract CurrencyUnit targetCurrency();
     }
 
-    @JsonSerialize(converter = RateVersionFormat.Encode.class)
-    @JsonDeserialize(converter = RateVersionFormat.Decode.class)
+    @JsonSerialize(converter = ExchangeRateVersionEncoder.class)
+    @JsonDeserialize(converter = ExchangeRateVersionDecoder.class)
     abstract static class RateVersionMixin {}
 
-    @JsonSerialize(using = AllocationFormat.Encode.class)
-    @JsonDeserialize(using = AllocationFormat.Decode.class)
+    @JsonSerialize(using = ShareAllocationEncoder.class)
+    @JsonDeserialize(using = ShareAllocationDecoder.class)
     abstract static class AllocationMixin {}
 
     record ExpenseMixin(
