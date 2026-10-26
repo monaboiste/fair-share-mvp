@@ -1,6 +1,6 @@
 package com.github.monaboiste.fairshare.settlement.infrastructure;
 
-import com.github.monaboiste.fairshare.settlement.infrastructure.format.ProjectionFormat;
+import com.github.monaboiste.fairshare.settlement.infrastructure.codecs.ProjectionFormat;
 import java.util.Set;
 
 final class SettlementProjectionCodec {

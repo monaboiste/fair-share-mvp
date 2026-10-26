@@ -1,4 +1,4 @@
-package com.github.monaboiste.fairshare.settlement.infrastructure.format;
+package com.github.monaboiste.fairshare.settlement.infrastructure.codecs;
 
 import com.github.monaboiste.fairshare.quantity.money.Money;
 import com.github.monaboiste.fairshare.settlement.application.query.ExpenseView;

@@ -13,7 +13,7 @@ import com.github.monaboiste.fairshare.settlement.domain.event.SettlementEvent;
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementOpened;
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementRenamed;
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementReopened;
-import com.github.monaboiste.fairshare.settlement.infrastructure.format.DurableJson;
+import com.github.monaboiste.fairshare.settlement.infrastructure.codecs.DurableJson;
 
 public final class SettlementEventCodec {
     public String encode(SettlementEvent event) {

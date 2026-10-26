@@ -12,6 +12,7 @@ module com.github.monaboiste.fairshare.app {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.annotation;
     requires spring.boot;
+    requires spring.boot.autoconfigure;
     requires spring.context;
     requires spring.core;
     requires spring.beans;
@@ -20,7 +21,11 @@ module com.github.monaboiste.fairshare.app {
     requires java.sql;
     requires org.slf4j;
 
-    opens com.github.monaboiste.fairshare.settlement.infrastructure.format to
+    opens com.github.monaboiste.fairshare.settlement.application to
+            spring.core,
+            spring.beans,
+            spring.context;
+    opens com.github.monaboiste.fairshare.settlement.infrastructure.codecs to
             com.fasterxml.jackson.databind;
     opens com.github.monaboiste.fairshare.settlement.infrastructure to
             spring.core,
