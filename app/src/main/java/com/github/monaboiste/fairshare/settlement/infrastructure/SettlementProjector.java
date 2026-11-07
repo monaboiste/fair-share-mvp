@@ -351,13 +351,10 @@ public final class SettlementProjector
     }
 
     private static List<Obligation<ParticipantId>> expenseContributions(ParticipantId payer, List<Share> shares) {
-        List<Obligation<ParticipantId>> contributions = new ArrayList<>();
-        for (Share share : shares) {
-            if (!share.participantId().equals(payer)) {
-                contributions.add(new Obligation<>(share.participantId(), payer, share.amount()));
-            }
-        }
-        return contributions;
+        return shares.stream()
+                .filter(share -> !share.participantId().equals(payer))
+                .map(share -> new Obligation<>(share.participantId(), payer, share.amount()))
+                .toList();
     }
 
     private static Projection recordRepayment(
