@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -64,6 +65,7 @@ public final class DurableJson {
         scalar(scalars, LocalDateTime.class, LocalDateTime::parse, LocalDateTime::toString);
         JsonMapper mapper = JsonMapper.builder()
                 .addModule(scalars)
+                .disable(MapperFeature.INFER_PROPERTY_MUTATORS)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
                 .disable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
