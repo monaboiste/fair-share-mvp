@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.support.JdbcTransactionManager;
 
@@ -32,10 +33,10 @@ public class SettlementStorageConfiguration {
     }
 
     @Bean
-    JdbcTemplate jdbc(DataSource source, @Value("${fairshare.database.timeout-seconds:10}") int timeout) {
-        var jdbc = new JdbcTemplate(source);
-        jdbc.setQueryTimeout(databaseTimeout(timeout));
-        return jdbc;
+    NamedParameterJdbcTemplate jdbc(DataSource source, @Value("${fairshare.database.timeout-seconds:10}") int timeout) {
+        JdbcTemplate template = new JdbcTemplate(source);
+        template.setQueryTimeout(databaseTimeout(timeout));
+        return new NamedParameterJdbcTemplate(template);
     }
 
     static int databaseTimeout(int timeout) {
@@ -56,13 +57,14 @@ public class SettlementStorageConfiguration {
     }
 
     @Bean
-    PostgresEventStore eventStore(JdbcTemplate jdbc, JdbcTransactionManager transactions, SettlementEventCodec codec) {
+    PostgresEventStore eventStore(
+            NamedParameterJdbcTemplate jdbc, JdbcTransactionManager transactions, SettlementEventCodec codec) {
         return new PostgresEventStore(jdbc, transactions, codec);
     }
 
     @Bean
     PostgresSettlementProjection settlementViews(
-            JdbcTemplate jdbc, JdbcTransactionManager transactions, SettlementEventCodec codec) {
+            NamedParameterJdbcTemplate jdbc, JdbcTransactionManager transactions, SettlementEventCodec codec) {
         return new PostgresSettlementProjection(jdbc, transactions, codec);
     }
 }
