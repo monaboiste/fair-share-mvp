@@ -18,7 +18,6 @@ dependencies {
     implementation(libs.jackson.core)
     implementation(libs.jackson.annotations)
     runtimeOnly(libs.postgresql)
-    testImplementation(libs.testcontainers.postgresql)
 }
 
 sourceSets.test.resources.srcDir(rootProject.file("scripts/postgres"))
