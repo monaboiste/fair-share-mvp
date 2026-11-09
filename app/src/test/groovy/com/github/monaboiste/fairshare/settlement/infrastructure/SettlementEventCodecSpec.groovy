@@ -1,17 +1,27 @@
 package com.github.monaboiste.fairshare.settlement.infrastructure
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementEvent
 import com.github.monaboiste.fairshare.settlement.domain.event.SettlementOpened
 import javax.money.Monetary
+import spock.lang.Shared
 import spock.lang.Specification
 
 class SettlementEventCodecSpec extends Specification {
+
+    @Shared
+    def mapper = JsonMapper.builder().build()
+
+    @Shared
+    def fixturesJson = getClass()
+            .getResource("/settlement-events-v1.json")
+            .getText("UTF-8")
+
     def "every durable event variant interchanges with fixed version-one JSON"() {
         given:
         def codec = new SettlementEventCodec()
-        def mapper = new ObjectMapper()
-        def fixtures = mapper.readTree(getClass().getResource("/settlement-events-v1.json"))
+        def fixtures = mapper.readTree(fixturesJson)
         def events = fixtures.collect { fixture -> codec.decode(fixture.get("type").textValue(), 1, fixture.get("payload").toString()) }
 
         when:
@@ -29,8 +39,7 @@ class SettlementEventCodecSpec extends Specification {
     def "an Expense with #shape Shares is rejected instead of losing its contributions"() {
         given:
         def codec = new SettlementEventCodec()
-        def mapper = new ObjectMapper()
-        def fixtures = mapper.readTree(getClass().getResource("/settlement-events-v1.json"))
+        def fixtures = mapper.readTree(fixturesJson)
         def document = fixtures.find { it.get("type").textValue() == "ExpenseRecorded" }.get("payload").deepCopy()
         document.set("shares", mapper.readTree(shares))
 
@@ -41,12 +50,12 @@ class SettlementEventCodecSpec extends Specification {
         thrown(IllegalArgumentException)
 
         where:
-        shape          | shares
-        "null"         | "null"
-        "object"       | "{}"
-        "string"       | "\"lost\""
-        "number"       | "0"
-        "boolean"      | "true"
+        shape     | shares
+        "null"    | "null"
+        "object"  | "{}"
+        "string"  | "\"lost\""
+        "number"  | "0"
+        "boolean" | "true"
     }
 
     def "a #type fact requires an object document rather than #shape"() {
@@ -70,7 +79,7 @@ class SettlementEventCodecSpec extends Specification {
     def "a fractional Share weight is never silently truncated"() {
         given:
         def codec = new SettlementEventCodec()
-        def fixtures = new ObjectMapper().readTree(getClass().getResource("/settlement-events-v1.json"))
+        def fixtures = new ObjectMapper().readTree(fixturesJson)
         def document = fixtures.last().get("payload").deepCopy()
         document.get("allocation").get("entries").get(0).put("weight", 2.5)
 
@@ -92,18 +101,17 @@ class SettlementEventCodecSpec extends Specification {
         thrown(IllegalArgumentException)
 
         where:
-        format        | type                           | version | json
-        "type"        | "java.lang.Runtime"            | 1       | "{}"
-        "version"     | "SettlementOpened"             | 2       | "{}"
-        "invalid JSON"| "SettlementOpened"             | 1       | "not json"
-        "value"       | "SettlementOpened"             | 1       | """{"name":1,"currency":"EUR"}"""
-        "allocation"  | "ExpenseRecorded"              | 1       | """{"expenseId":"00000000-0000-0000-0000-000000000003","description":"Dinner","incurredOn":"2026-10-04","payer":"00000000-0000-0000-0000-000000000001","originalAmount":{"amount":"100","currency":"USD"},"allocation":{"kind":"unknown","entries":[]}}"""
+        format         | type                | version | json
+        "type"         | "java.lang.Runtime" | 1       | "{}"
+        "version"      | "SettlementOpened"  | 2       | "{}"
+        "invalid JSON" | "SettlementOpened"  | 1       | "not json"
+        "value"        | "SettlementOpened"  | 1       | """{"name":1,"currency":"EUR"}"""
+        "allocation"   | "ExpenseRecorded"   | 1       | """{"expenseId":"00000000-0000-0000-0000-000000000003","description":"Dinner","incurredOn":"2026-10-04","payer":"00000000-0000-0000-0000-000000000001","originalAmount":{"amount":"100","currency":"USD"},"allocation":{"kind":"unknown","entries":[]}}"""
     }
 
     def "an Expense rejects #shape in #path"() {
         given:
-        def mapper = new ObjectMapper()
-        def fixtures = mapper.readTree(getClass().getResource("/settlement-events-v1.json"))
+        def fixtures = mapper.readTree(fixturesJson)
         def document = fixtures.last().get("payload").deepCopy()
         def parent = document
         def fields = path.split("/")
@@ -138,8 +146,18 @@ class SettlementEventCodecSpec extends Specification {
     def "nullable validity endpoints remain present and time strings retain their exact format"() {
         given:
         def codec = new SettlementEventCodec()
-        def json = """{"version":{"id":"00000000-0000-0000-0000-000000000005","rate":{"source":"USD","target":"EUR","value":"0.9"},"from":null,"to":"2026-10-04T12:00","definedAt":"2026-10-04T00:00"}}"""
-        def mapper = new ObjectMapper()
+        // language=json
+        def json = """
+            {
+              "version": {
+                "id": "00000000-0000-0000-0000-000000000005",
+                "rate": { "source": "USD", "target": "EUR", "value": "0.9" },
+                "from": null,
+                "to": "2026-10-04T12:00",
+                "definedAt": "2026-10-04T00:00"
+              }
+            }
+            """
 
         when:
         def event = codec.decode("ExchangeRateConfigured", 1, json)
@@ -148,7 +166,9 @@ class SettlementEventCodecSpec extends Specification {
         mapper.readTree(codec.encode(event)) == mapper.readTree(json)
 
         when:
-        codec.decode("ExchangeRateConfigured", 1, json.replace("\"from\":null,", ""))
+        def document = mapper.readTree(json)
+        document.get("version").remove("from")
+        codec.decode("ExchangeRateConfigured", 1, document.toString())
 
         then:
         thrown(IllegalArgumentException)
@@ -156,8 +176,7 @@ class SettlementEventCodecSpec extends Specification {
 
     def "historical #kind Allocations retain #history without business validation"() {
         given:
-        def mapper = new ObjectMapper()
-        def fixtures = mapper.readTree(getClass().getResource("/settlement-events-v1.json"))
+        def fixtures = mapper.readTree(fixturesJson)
         def document = fixtures.last().get("payload").deepCopy()
         document.set("allocation", mapper.readTree(allocation))
         document.put("futureProperty", "ignored")
@@ -173,13 +192,13 @@ class SettlementEventCodecSpec extends Specification {
         }
 
         where:
-        kind       | history                 | allocation                                                                                                                                                                                            | recipients | weight
-        "equal"    | "empty entries"         | """{"kind":"equal","entries":[]}"""                                                                                                                                                              | []         | null
-        "equal"    | "duplicate recipients"  | """{"kind":"equal","entries":[{"participantId":"00000000-0000-0000-0000-000000000001"},{"participantId":"00000000-0000-0000-0000-000000000001"}]}"""                                             | [1]        | null
-        "exact"    | "empty entries"         | """{"kind":"exact","entries":[]}"""                                                                                                                                                              | []         | null
-        "weighted" | "empty entries"         | """{"kind":"weighted","entries":[]}"""                                                                                                                                                           | []         | null
-        "weighted" | "nonpositive weights"   | """{"kind":"weighted","entries":[{"participantId":"00000000-0000-0000-0000-000000000001","weight":0}]}"""                                                                                         | [1]        | 0
-        "weighted" | "last duplicate weight" | """{"kind":"weighted","entries":[{"participantId":"00000000-0000-0000-0000-000000000001","weight":3},{"participantId":"00000000-0000-0000-0000-000000000001","weight":-2}]}"""                   | [1]        | -2
+        kind       | history                 | allocation                                                                                                                                                                     | recipients | weight
+        "equal"    | "empty entries"         | """{"kind":"equal","entries":[]}"""                                                                                                                                            | []         | null
+        "equal"    | "duplicate recipients"  | """{"kind":"equal","entries":[{"participantId":"00000000-0000-0000-0000-000000000001"},{"participantId":"00000000-0000-0000-0000-000000000001"}]}"""                           | [1]        | null
+        "exact"    | "empty entries"         | """{"kind":"exact","entries":[]}"""                                                                                                                                            | []         | null
+        "weighted" | "empty entries"         | """{"kind":"weighted","entries":[]}"""                                                                                                                                         | []         | null
+        "weighted" | "nonpositive weights"   | """{"kind":"weighted","entries":[{"participantId":"00000000-0000-0000-0000-000000000001","weight":0}]}"""                                                                      | [1]        | 0
+        "weighted" | "last duplicate weight" | """{"kind":"weighted","entries":[{"participantId":"00000000-0000-0000-0000-000000000001","weight":3},{"participantId":"00000000-0000-0000-0000-000000000001","weight":-2}]}""" | [1]        | -2
     }
 
     def "a #type fact rejects a #shape #field creator value"() {
@@ -193,9 +212,8 @@ class SettlementEventCodecSpec extends Specification {
         [type, field, shape, document] << missingEventFields()
     }
 
-    private static List missingEventFields() {
-        def mapper = new ObjectMapper()
-        def fixtures = mapper.readTree(SettlementEventCodecSpec.getResource("/settlement-events-v1.json"))
+    private List missingEventFields() {
+        def fixtures = mapper.readTree(fixturesJson)
         fixtures.collectMany { fixture ->
             fixture.get("payload").fieldNames().toList().collectMany { field ->
                 ["missing", "null"].findAll { shape -> shape != "null" || field != "exchangeRateOverride" }.collect { shape ->

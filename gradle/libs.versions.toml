@@ -9,10 +9,9 @@ moneta = "1.4.5"
 # Infrastructure
 spring-boot = "4.1.1"
 spring = "7.0.9"
-postgresql = "42.7.13"
 jackson = "2.21.5"
 jackson-annotations = "2.21"
-testcontainers = "2.0.5"
+postgresql = "42.7.13"
 
 # Development
 jspecify = "1.0.1"
@@ -58,7 +57,6 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-annotations" }
-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
 annotations = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 
