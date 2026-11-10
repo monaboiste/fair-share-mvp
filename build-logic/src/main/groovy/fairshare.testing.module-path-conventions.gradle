@@ -1,0 +1,37 @@
+plugins {
+    id("fairshare.java.library-conventions")
+}
+
+def smoke = extensions.create("modulePathSmoke", ModulePathSmokeExtension)
+def modulePath = files(configurations.runtimeClasspath, tasks.named("jar").flatMap { it.archiveFile })
+def patchSources = layout.projectDirectory.dir("src/modulePathSmoke/java")
+def patchClasses = layout.buildDirectory.dir("classes/java/modulePathSmoke")
+def compilerArguments = objects.newInstance(ModulePathCompileArguments)
+compilerArguments.modulePath.from(modulePath)
+compilerArguments.moduleName.set(smoke.moduleName)
+compilerArguments.patchSources.from(patchSources)
+
+def compileSmoke = tasks.register("compileModulePathSmokeJava", JavaCompile) {
+    dependsOn(tasks.named("jar"), configurations.runtimeClasspath)
+    source(patchSources)
+    classpath = files()
+    destinationDirectory = patchClasses
+    javaCompiler = javaToolchains.compilerFor(java.toolchain)
+    options.compilerArgumentProviders.add(compilerArguments)
+}
+
+def runSmoke = tasks.register("modulePathSmoke", JavaExec) {
+    dependsOn(compileSmoke)
+    classpath = modulePath
+    mainModule = smoke.moduleName
+    mainClass = smoke.mainClass
+    javaLauncher = javaToolchains.launcherFor(java.toolchain)
+    modularity.inferModulePath = true
+    inputs.file(smoke.fixture)
+    jvmArgs("--patch-module", smoke.moduleName.zip(patchClasses) { name, directory -> "${name}=${directory.asFile}" }.get())
+    args(smoke.fixture.get().asFile.absolutePath)
+}
+
+tasks.named("check") {
+    dependsOn(runSmoke)
+}

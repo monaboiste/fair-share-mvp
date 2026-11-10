@@ -1,14 +1,3 @@
 plugins {
-    id("fairshare.spring.application-conventions")
-    id("fairshare.testing.conventions")
-    id("fairshare.observability.logging-conventions")
-    id("fairshare.quality.conventions")
-}
-
-dependencies {
-    api(project(":core:common"))
-    api(project(":core:quantity"))
-    api(project(":core:pricing"))
-    api(libs.money.api)
-    implementation(project(":core:graphs"))
+    id("fairshare.lifecycle.aggregation-conventions")
 }

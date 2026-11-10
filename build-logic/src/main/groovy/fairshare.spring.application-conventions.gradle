@@ -15,9 +15,6 @@ dependencies {
     implementation(libs.spring.beans)
     implementation(libs.spring.jdbc)
     implementation(libs.spring.tx)
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.core)
-    implementation(libs.jackson.annotations)
     runtimeOnly(libs.postgresql)
 }
 

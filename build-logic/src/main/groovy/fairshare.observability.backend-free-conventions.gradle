@@ -1,0 +1,8 @@
+plugins {
+    id("fairshare.java.library-conventions")
+}
+
+configurations.named("runtimeClasspath") {
+    exclude(group: libs.logstash.encoder.get().module.group, module: libs.logstash.encoder.get().module.name)
+    exclude(group: libs.logback.classic.get().module.group)
+}
