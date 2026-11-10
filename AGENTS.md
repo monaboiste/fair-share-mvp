@@ -3,7 +3,7 @@
 - Use the Java version from [.sdkmanrc](.sdkmanrc). Configure `JAVA_HOME` from
   `~/.local/bin/sdkman/candidates/java/<version>` before running Gradle.
 - Use double-quoted strings and four-space indentation in Groovy and Gradle Groovy DSL files.
-- Keep shared Gradle configuration in convention plugins under `buildSrc`.
+- Keep shared Gradle configuration in convention plugins under `build-logic`.
 - Declare dependency versions and aliases in `gradle/libs.versions.toml`.
 - Use conventional commits (`feat`, `fix`, `docs`, `chore`) with scopes. Prefer lowercase imperative subjects ≤50 chars
   and 72-char bodies.

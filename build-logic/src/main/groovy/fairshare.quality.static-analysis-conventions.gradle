@@ -1,0 +1,13 @@
+plugins {
+    id("net.ltgt.errorprone")
+}
+
+dependencies {
+    errorprone(libs.errorprone.core)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        disableWarningsInGeneratedCode = true
+    }
+}

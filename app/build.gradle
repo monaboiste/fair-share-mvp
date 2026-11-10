@@ -1,6 +1,8 @@
 plugins {
-    id("library-module-conventions")
-    id("spring-runtime-conventions")
+    id("fairshare.spring.application-conventions")
+    id("fairshare.testing.conventions")
+    id("fairshare.observability.logging-conventions")
+    id("fairshare.quality.conventions")
 }
 
 dependencies {

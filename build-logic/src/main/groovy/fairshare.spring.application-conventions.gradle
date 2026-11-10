@@ -1,4 +1,5 @@
 plugins {
+    id("fairshare.java.library-conventions")
     id("org.springframework.boot")
 }
 

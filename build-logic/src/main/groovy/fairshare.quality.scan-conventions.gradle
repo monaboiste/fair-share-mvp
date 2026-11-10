@@ -3,7 +3,7 @@ plugins {
 }
 
 if (project != rootProject) {
-    throw new GradleException("'quality-conventions' must only be applied to the root project")
+    throw new GradleException("'fairshare.quality.scan-conventions' must only be applied to the root project")
 }
 
 qodana {

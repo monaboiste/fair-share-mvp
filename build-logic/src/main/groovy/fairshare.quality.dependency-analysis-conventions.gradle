@@ -1,0 +1,14 @@
+plugins {
+    id("com.autonomousapps.dependency-analysis")
+}
+
+tasks.register("dependencyAnalysis") {
+    group = "verification"
+    description = project == rootProject
+            ? "Run dependency analysis"
+            : "Run dependency analysis for this project"
+
+    dependsOn(tasks.named(
+            project == rootProject ? "buildHealth" : "projectHealth"
+    ))
+}

@@ -1,0 +1,7 @@
+plugins {
+    id("fairshare.quality.formatting-conventions")
+    id("fairshare.quality.static-analysis-conventions")
+    id("fairshare.quality.coverage-conventions")
+    id("fairshare.quality.mutation-testing-conventions")
+    id("fairshare.quality.dependency-analysis-conventions")
+}

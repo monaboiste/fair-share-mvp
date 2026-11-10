@@ -37,6 +37,9 @@ jobs:
           java-version: "25"
           cache: gradle
 
+      - name: Build Logic Tests
+        run: ./gradlew -p build-logic check
+
       - name: Build
         run: ./gradlew assemble
 

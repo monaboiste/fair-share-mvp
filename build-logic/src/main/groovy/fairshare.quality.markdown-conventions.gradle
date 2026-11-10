@@ -1,12 +1,12 @@
 plugins {
-    id("formatting-conventions")
+    id("fairshare.quality.formatting-conventions")
 }
 
 if (project != rootProject) {
-    throw new GradleException("'markdown-quality-conventions' must only be applied to the root project")
+    throw new GradleException("'fairshare.quality.markdown-conventions' must only be applied to the root project")
 }
 
-def rumdlConfig = rootProject.layout.projectDirectory.file("buildSrc/rumdl.toml")
+def rumdlConfig = rootProject.layout.projectDirectory.file("build-logic/config/rumdl.toml")
 
 def formatMarkdown = tasks.register("formatMarkdown", Exec) {
     group = "quality"

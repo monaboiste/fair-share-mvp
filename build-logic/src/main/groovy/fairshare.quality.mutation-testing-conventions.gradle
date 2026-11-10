@@ -1,0 +1,18 @@
+plugins {
+    id("info.solidsoft.pitest")
+}
+
+pitest {
+    pitestVersion = libs.versions.pitest.engine.get()
+    junit5PluginVersion = libs.versions.pitest.junit.get()
+
+    threads = 4
+
+    outputFormats = ["HTML", "XML"]
+    timestampedReports = false
+}
+
+tasks.register("mutationCheck") {
+    group = "quality"
+    dependsOn(tasks.named("pitest"))
+}
