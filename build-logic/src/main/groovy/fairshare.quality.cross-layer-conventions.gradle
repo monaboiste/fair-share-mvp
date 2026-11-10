@@ -1,0 +1,24 @@
+def quality = extensions.create("crossLayerQuality", CrossLayerQualityExtension)
+
+gradle.projectsEvaluated {
+    def members = quality.participants.get().collect { project(it) }
+    def scenarioTests = members.collect { it.tasks.named("test") }
+    def scenarioSources = members.collect { it.sourceSets.test }
+    def scenarioProperties = scenarioTests.collectMany { test ->
+        test.get().systemProperties.collect { key, value -> "-D${key}=${value}".toString() }
+    }.unique()
+
+    members.each { member ->
+        member.tasks.named("jacocoTestReport") {
+            dependsOn(scenarioTests)
+            executionData.setFrom(scenarioTests.collect { it.get().jacoco.destinationFile })
+        }
+        member.pitest {
+            testSourceSets = scenarioSources
+            jvmArgs.addAll(scenarioProperties)
+        }
+        member.tasks.named("pitest") {
+            dependsOn(members.collect { it.tasks.named("testClasses") })
+        }
+    }
+}

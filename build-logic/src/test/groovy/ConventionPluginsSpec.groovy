@@ -61,6 +61,48 @@ class ConventionPluginsSpec extends Specification {
         result.task(":verifyConvention").outcome == TaskOutcome.SUCCESS
     }
 
+    def "libraries exclude inherited logging backends only from their production runtime"() {
+        given:
+        conventionProject()
+        buildFile("fairshare.observability.backend-free-conventions", """
+            assert configurations.runtimeClasspath.excludeRules.collect { [it.group, it.module] }.toSet() == [
+                ["net.logstash.logback", "logstash-logback-encoder"], ["ch.qos.logback", null]
+            ] as Set
+            assert configurations.compileClasspath.excludeRules.empty
+            assert configurations.testRuntimeClasspath.excludeRules.empty
+            assert configurations.runtimeOnly.dependencies.empty
+        """)
+
+        when:
+        def result = runner("verifyConvention").build()
+
+        then:
+        result.task(":verifyConvention").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "Spring adapters receive technical dependencies without an executable artifact"() {
+        given:
+        conventionProject()
+        buildFile("fairshare.spring.adapter-conventions", """
+            assert plugins.hasPlugin("java-library")
+            assert !plugins.hasPlugin("org.springframework.boot")
+            assert configurations.implementation.dependencies.collect { it.name }.sort() == [
+                "jackson-annotations", "jackson-core", "jackson-databind", "slf4j-api"
+            ]
+            assert configurations.api.dependencies.collect { it.name }.sort() == [
+                "spring-context", "spring-jdbc", "spring-tx"
+            ]
+            assert configurations.runtimeOnly.dependencies.empty
+            assert tasks.findByName("bootJar") == null
+        """)
+
+        when:
+        def result = runner("verifyConvention").build()
+
+        then:
+        result.task(":verifyConvention").outcome == TaskOutcome.SUCCESS
+    }
+
     def "Spring applications keep library dependencies and executable artifact settings"() {
         given:
         conventionProject()
@@ -71,7 +113,6 @@ class ConventionPluginsSpec extends Specification {
             assert springBoot.mainClass.get() ==
                 "com.github.monaboiste.fairshare.settlement.application.FairShareApplication"
             assert configurations.implementation.dependencies.collect { it.name }.sort() == [
-                "jackson-annotations", "jackson-core", "jackson-databind",
                 "spring-beans", "spring-boot", "spring-boot-autoconfigure", "spring-context",
                 "spring-core", "spring-jdbc", "spring-tx"
             ]
@@ -186,6 +227,133 @@ class ConventionPluginsSpec extends Specification {
         !check.output.contains(":mutationCheck")
         !check.output.contains(":pitest")
         !check.output.contains(":qodanaScan")
+    }
+
+    def "layer reports own their classes and use all scenario tests"() {
+        given:
+        conventionProject()
+        new File(projectDirectory, "settings.gradle").append("\ninclude(\"domain\", \"application\")\n")
+        ["domain", "application"].each { name ->
+            def directory = new File(projectDirectory, name)
+            directory.mkdirs()
+            new File(directory, "build.gradle").text = """
+                plugins {
+                    id("fairshare.java.library-conventions")
+                    id("fairshare.testing.conventions")
+                    id("fairshare.quality.conventions")
+                }
+            """
+        }
+        buildFile([
+                "fairshare.java.library-conventions",
+                "fairshare.testing.conventions",
+                "fairshare.quality.conventions",
+                "fairshare.quality.cross-layer-conventions"
+        ], """
+            allprojects.each { member ->
+                assert member.pitest.testSourceSets.get()*.name == ["test", "test", "test"]
+                assert member.pitest.mainSourceSets.get() == [member.sourceSets.main] as Set
+                assert member.tasks.pitest.enabled
+                assert member.pitest.jvmArgs.get().contains("-Dscenario.fixture=known")
+                assert member.tasks.jacocoTestReport.classDirectories.files == member.sourceSets.main.output.files
+                assert member.tasks.jacocoTestReport.executionData.files == allprojects.collect {
+                    it.layout.buildDirectory.file("jacoco/test.exec").get().asFile
+                } as Set
+                assert member.tasks.jacocoTestReport.taskDependencies.getDependencies(member.tasks.jacocoTestReport)
+                    .findAll { it.name == "test" }*.path.toSet() == [":test", ":domain:test", ":application:test"] as Set
+            }
+        """)
+        new File(projectDirectory, "build.gradle").append("""
+            tasks.named("test") {
+                systemProperty("scenario.fixture", "known")
+            }
+            crossLayerQuality {
+                participants = [":", ":domain", ":application"]
+            }
+        """)
+
+        when:
+        def result = runner("verifyConvention").build()
+
+        then:
+        result.task(":verifyConvention").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "module path smoke checks patch a named module without public test exports"() {
+        given:
+        conventionProject()
+        buildFile("fairshare.testing.module-path-conventions", """
+            assert tasks.check.taskDependencies.getDependencies(tasks.check)*.name.contains("modulePathSmoke")
+            assert sourceSets*.name == ["main", "test"]
+        """)
+        new File(projectDirectory, "build.gradle").append("""
+            modulePathSmoke {
+                moduleName = "smoke.consumer"
+                mainClass = "smoke.Main"
+                fixture = layout.projectDirectory.file("fixture.txt")
+            }
+        """)
+        def main = new File(projectDirectory, "src/main/java")
+        main.mkdirs()
+        new File(main, "module-info.java").text = "module smoke.consumer {}"
+        def smoke = new File(projectDirectory, "src/modulePathSmoke/java/smoke")
+        smoke.mkdirs()
+        new File(smoke, "Main.java").text = """
+            package smoke;
+            public class Main {
+                public static void main(String[] arguments) throws Exception {
+                    System.out.println(java.nio.file.Files.readString(java.nio.file.Path.of(arguments[0])));
+                }
+            }
+        """
+        new File(projectDirectory, "fixture.txt").text = "Module path fixture"
+
+        when:
+        def convention = runner("verifyConvention").build()
+        def result = runner("modulePathSmoke", "--configuration-cache").build()
+        def repeated = runner("modulePathSmoke", "--configuration-cache").build()
+
+        then:
+        convention.task(":verifyConvention").outcome == TaskOutcome.SUCCESS
+        result.task(":modulePathSmoke").outcome == TaskOutcome.SUCCESS
+        result.output.contains("Module path fixture")
+        repeated.output.contains("Configuration cache entry reused")
+    }
+
+    def "source-free parents aggregate checks without Java or executable artifacts"() {
+        given:
+        conventionProject()
+        new File(projectDirectory, "settings.gradle").append("\ninclude(\"domain\", \"bootstrap\")\n")
+        ["domain", "bootstrap"].each { name ->
+            def directory = new File(projectDirectory, name)
+            directory.mkdirs()
+            new File(directory, "build.gradle").text = """
+                plugins { id("base") }
+                ["test", "format", "formatCheck", "coverageCheck", "mutationCheck", "dependencyAnalysis"].each { name ->
+                    tasks.register(name)
+                }
+            """
+        }
+        buildFile("fairshare.lifecycle.aggregation-conventions", """
+            assert !plugins.hasPlugin("java")
+            assert !plugins.hasPlugin("org.springframework.boot")
+            assert tasks.findByName("jar") == null
+            assert tasks.findByName("bootJar") == null
+            assert tasks.findByName("bootRun") == null
+            ["assemble", "check", "clean", "test", "format", "formatCheck", "coverageCheck", "mutationCheck", "dependencyAnalysis"].each { name ->
+                def task = tasks.named(name).get()
+                assert task.dependsOn.flatten().findAll { it instanceof CharSequence }*.toString().toSet() == [":domain:" + name, ":bootstrap:" + name] as Set
+            }
+        """)
+
+        when:
+        def result = runner("verifyConvention").build()
+        def repeated = runner("check", "--configuration-cache").build()
+
+        then:
+        result.task(":verifyConvention").outcome == TaskOutcome.SUCCESS
+        repeated.task(":domain:check").outcome == TaskOutcome.UP_TO_DATE
+        repeated.task(":bootstrap:check").outcome == TaskOutcome.UP_TO_DATE
     }
 
     def "root quality plugin #pluginId keeps its tasks and rejects module placement"() {

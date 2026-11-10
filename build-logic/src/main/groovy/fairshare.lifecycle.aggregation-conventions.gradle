@@ -1,0 +1,16 @@
+plugins {
+    id("base")
+}
+
+["assemble", "check", "clean"].each { name ->
+    tasks.named(name) {
+        dependsOn(subprojects.collect { "${it.path}:${name}" })
+    }
+}
+
+["test", "format", "formatCheck", "coverageCheck", "mutationCheck", "dependencyAnalysis"].each { name ->
+    tasks.register(name) {
+        group = name in ["format", "coverageCheck", "mutationCheck"] ? "quality" : "verification"
+        dependsOn(subprojects.collect { "${it.path}:${name}" })
+    }
+}

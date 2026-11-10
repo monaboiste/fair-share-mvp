@@ -17,6 +17,10 @@ rootProject.name = "fair-share"
 
 include(
         "app",
+        "app:domain",
+        "app:application",
+        "app:infrastructure",
+        "app:bootstrap",
         "core:common",
         "core:quantity",
         "core:product",

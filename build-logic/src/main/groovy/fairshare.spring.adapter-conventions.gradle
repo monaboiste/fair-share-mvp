@@ -1,0 +1,13 @@
+plugins {
+    id("fairshare.java.library-conventions")
+}
+
+dependencies {
+    api(libs.spring.context)
+    api(libs.spring.jdbc)
+    api(libs.spring.tx)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.core)
+    implementation(libs.jackson.annotations)
+    implementation(libs.slf4j)
+}
