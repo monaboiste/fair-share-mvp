@@ -1,0 +1,23 @@
+plugins {
+    id("groovy-gradle-plugin")
+}
+
+dependencies {
+    implementation(libs.spring.boot.plugin)
+    implementation(libs.spotless.plugin)
+    implementation(libs.errorprone.plugin)
+    implementation(libs.quodana.plugin)
+    implementation(libs.pitest.plugin)
+    implementation(libs.dependency.analysis.plugin)
+
+    testImplementation(gradleTestKit())
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(platform(libs.spock.gradle.bom))
+    testImplementation(libs.spock.core)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+tasks.named("test") {
+    useJUnitPlatform()
+    systemProperty("catalogPath", file("../gradle/libs.versions.toml").absolutePath)
+}

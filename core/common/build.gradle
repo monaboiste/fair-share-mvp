@@ -1,3 +1,6 @@
 plugins {
-    id("library-module-conventions")
+    id("fairshare.java.library-conventions")
+    id("fairshare.testing.conventions")
+    id("fairshare.observability.logging-conventions")
+    id("fairshare.quality.conventions")
 }

@@ -1,0 +1,48 @@
+plugins {
+    id("com.diffplug.spotless")
+}
+
+spotless {
+    enforceCheck = true
+
+    java {
+        target("src/*/java/**/*.java")
+
+        removeUnusedImports()
+        forbidWildcardImports()
+        forbidModuleImports()
+        palantirJavaFormat().formatJavadoc(true)
+        formatAnnotations()
+    }
+
+    groovy {
+        target("src/*/groovy/**/*.groovy")
+
+        importOrder()
+        leadingTabsToSpaces(4)
+        trimTrailingWhitespace()
+        removeSemicolons()
+        endWithNewline()
+
+        custom("forbid wildcard imports") { source ->
+            if (source =~ /(?m)^\s*import\s+(?:static\s+)?[\w.]+\.\*\s*;?\s*$/) {
+                throw new GradleException("Wildcard imports are forbidden")
+            }
+            source
+        }
+    }
+}
+
+tasks.register("formatCheck") {
+    group = "verification"
+    description = "Check for format violations"
+
+    dependsOn(tasks.named("spotlessCheck"))
+}
+
+tasks.register("format") {
+    group = "quality"
+    description = "Apply formatting"
+
+    dependsOn(tasks.named("spotlessApply"))
+}

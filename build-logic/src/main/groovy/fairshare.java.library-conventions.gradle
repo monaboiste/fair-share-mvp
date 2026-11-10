@@ -1,0 +1,4 @@
+plugins {
+    id("fairshare.java.conventions")
+    id("java-library")
+}

@@ -1,6 +1,5 @@
 plugins {
     id("jacoco")
-    id("info.solidsoft.pitest")
 }
 
 jacoco {
@@ -17,16 +16,6 @@ tasks.named("jacocoTestReport") {
     }
 }
 
-pitest {
-    pitestVersion = libs.versions.pitest.engine.get()
-    junit5PluginVersion = libs.versions.pitest.junit.get()
-
-    threads = 4
-
-    outputFormats = ["HTML", "XML"]
-    timestampedReports = false
-}
-
 tasks.register("coverageCheck") {
     group = "quality"
     dependsOn(tasks.named("jacocoTestReport"))
@@ -34,9 +23,4 @@ tasks.register("coverageCheck") {
 
 tasks.named("check") {
     dependsOn(tasks.named("coverageCheck"))
-}
-
-tasks.register("mutationCheck") {
-    group = "quality"
-    dependsOn(tasks.named("pitest"))
 }

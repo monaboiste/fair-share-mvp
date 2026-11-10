@@ -9,12 +9,10 @@ dependencies {
     testImplementation(libs.groovy)
     testImplementation(platform(libs.spock.bom))
     testImplementation(libs.spock.core)
-
-    // Please, do not add too much dependencies here
 }
 
 tasks.named("compileTestGroovy") {
-    groovyOptions.javaAnnotationProcessing = true // Java annotation processors should process annotations on stub
+    groovyOptions.javaAnnotationProcessing = true
 }
 
 tasks.named("test") {
