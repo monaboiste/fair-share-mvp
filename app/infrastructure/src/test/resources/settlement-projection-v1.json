@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "id": "00000000-0000-0000-0000-000000000008",
+  "name": "  Holiday  ",
+  "currency": "EUR",
+  "version": 14,
+  "status": "OPEN",
+  "participants": [
+    {"participantId": "00000000-0000-0000-0000-000000000002", "name": "Sam"},
+    {"participantId": "00000000-0000-0000-0000-000000000001", "name": "Sam"}
+  ],
+  "retired": ["00000000-0000-0000-0000-000000000009"],
+  "expenses": [
+    {
+      "status": "ACTIVE",
+      "fact": {
+        "expenseId": "00000000-0000-0000-0000-000000000003",
+        "description": "Lunch",
+        "incurredOn": "2026-10-04",
+        "payer": "00000000-0000-0000-0000-000000000001",
+        "originalAmount": {"amount": "10", "currency": "USD"},
+        "allocation": {
+          "kind": "equal",
+          "entries": [{"participantId": "00000000-0000-0000-0000-000000000002"}]
+        },
+        "exchangeRateOverride": null,
+        "componentVersionId": "00000000-0000-0000-0000-000000000005",
+        "exchangeRate": {"source": "USD", "target": "EUR", "value": "0.9"},
+        "valuation": {"amount": "9", "currency": "EUR"},
+        "shares": [
+          {
+            "participantId": "00000000-0000-0000-0000-000000000002",
+            "amount": {"amount": "9", "currency": "EUR"}
+          }
+        ]
+      }
+    },
+    {
+      "status": "CANCELLED",
+      "fact": {
+        "expenseId": "00000000-0000-0000-0000-000000000006",
+        "description": "Dinner",
+        "incurredOn": "2026-10-05",
+        "payer": "00000000-0000-0000-0000-000000000001",
+        "originalAmount": {"amount": "20", "currency": "USD"},
+        "allocation": {
+          "kind": "equal",
+          "entries": [{"participantId": "00000000-0000-0000-0000-000000000002"}]
+        },
+        "exchangeRateOverride": null,
+        "componentVersionId": "00000000-0000-0000-0000-000000000005",
+        "exchangeRate": {"source": "USD", "target": "EUR", "value": "0.9"},
+        "valuation": {"amount": "18", "currency": "EUR"},
+        "shares": [
+          {
+            "participantId": "00000000-0000-0000-0000-000000000002",
+            "amount": {"amount": "18", "currency": "EUR"}
+          }
+        ]
+      }
+    }
+  ],
+  "repayments": [
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "paidOn": "2026-10-06",
+      "payer": "00000000-0000-0000-0000-000000000002",
+      "recipient": "00000000-0000-0000-0000-000000000001",
+      "status": "ACTIVE",
+      "amount": {"amount": "4", "currency": "EUR"}
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "paidOn": "2026-10-07",
+      "payer": "00000000-0000-0000-0000-000000000002",
+      "recipient": "00000000-0000-0000-0000-000000000001",
+      "status": "CANCELLED",
+      "amount": {"amount": "1", "currency": "EUR"}
+    }
+  ],
+  "obligations": [
+    {
+      "debtor": "00000000-0000-0000-0000-000000000002",
+      "creditor": "00000000-0000-0000-0000-000000000001",
+      "amount": {"amount": "9", "currency": "EUR"}
+    },
+    {
+      "debtor": "00000000-0000-0000-0000-000000000001",
+      "creditor": "00000000-0000-0000-0000-000000000002",
+      "amount": {"amount": "4", "currency": "EUR"}
+    }
+  ],
+  "balances": [
+    {
+      "participantId": "00000000-0000-0000-0000-000000000002",
+      "amount": {"amount": "-5", "currency": "EUR"}
+    },
+    {
+      "participantId": "00000000-0000-0000-0000-000000000001",
+      "amount": {"amount": "5", "currency": "EUR"}
+    }
+  ],
+  "exchangeRates": [
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "definedAt": "2026-10-01T12:00:00.123456789",
+      "rate": {"source": "USD", "target": "EUR", "value": "0.9"},
+      "from": null,
+      "to": null
+    }
+  ]
+}
