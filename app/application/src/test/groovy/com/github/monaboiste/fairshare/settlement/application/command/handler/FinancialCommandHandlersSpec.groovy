@@ -124,7 +124,8 @@ class FinancialCommandHandlersSpec extends Specification {
         def settlement = openSettlement()
         assert settlement.configureExchangeRate(usdToEur(), Validity.always(), CONFIGURED_VERSION,
                 LocalDateTime.of(2026, 1, 1, 9, 0)).success()
-        def command = expenseCommand(settlement.id(), Money.of(10, "USD"), override)
+        def command = new RecordExpense(settlement.id(), EXPENSE, new ExpenseDescription("Lunch"), BUSINESS_DATE,
+                ADA, Money.of(10, "USD"), new EqualShareAllocation([ADA, BOB]), override)
         def previousEventCount = settlement.pendingEvents().size()
         def commit = new CommitResult(settlement.id(), [], 23)
         def handler = handlerFor.call(repository)
@@ -230,10 +231,9 @@ class FinancialCommandHandlersSpec extends Specification {
         settlement
     }
 
-    private static RecordExpense expenseCommand(SettlementId settlementId, Money amount = Money.of(10, "EUR"),
-            ExchangeRate override = null) {
+    private static RecordExpense expenseCommand(SettlementId settlementId, Money amount = Money.of(10, "EUR")) {
         new RecordExpense(settlementId, EXPENSE, new ExpenseDescription("Lunch"), BUSINESS_DATE,
-                ADA, amount, new EqualShareAllocation([ADA, BOB]), override)
+                ADA, amount, new EqualShareAllocation([ADA, BOB]))
     }
 
     private static RecordRepayment repaymentCommand(SettlementId settlementId, Money amount = Money.of(5, "EUR")) {
