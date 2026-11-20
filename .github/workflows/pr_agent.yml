@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Review pull request
-        uses: the-pr-agent/pr-agent@main
+        uses: the-pr-agent/pr-agent@v0.50.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENROUTER__KEY: ${{ secrets.OPENROUTER_API_KEY }}
