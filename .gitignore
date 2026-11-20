@@ -38,5 +38,5 @@ bin/
 .DS_Store
 
 # Agents
-.lavish
 .agents/plans
+.pi/tasks
