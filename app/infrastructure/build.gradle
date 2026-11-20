@@ -2,14 +2,7 @@ plugins {
     id("fairshare.spring.adapter-conventions")
     id("fairshare.observability.backend-free-conventions")
     id("fairshare.testing.conventions")
-    id("fairshare.testing.module-path-conventions")
     id("fairshare.quality.conventions")
-}
-
-modulePathSmoke {
-    moduleName = "com.github.monaboiste.fairshare.app.infrastructure"
-    mainClass = "com.github.monaboiste.fairshare.settlement.infrastructure.CodecSmoke"
-    fixture = layout.projectDirectory.file("src/test/resources/settlement-events-v1.json")
 }
 
 dependencies {

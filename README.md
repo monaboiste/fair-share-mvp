@@ -20,5 +20,3 @@ Domain and application have no Spring, Jackson, JDBC, or PostgreSQL production d
 Infrastructure depends on application and domain. Bootstrap wires all three layers.
 
 Each source-owning child owns its coverage and mutation report.
-Reports use tests across all app modules without duplicate production classes.
-Run the database-free JPMS codec check with `./gradlew :app:infrastructure:modulePathSmoke`.

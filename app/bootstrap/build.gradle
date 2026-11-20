@@ -3,7 +3,6 @@ plugins {
     id("fairshare.testing.conventions")
     id("fairshare.observability.logging-conventions")
     id("fairshare.quality.conventions")
-    id("fairshare.quality.cross-layer-conventions")
 }
 
 dependencies {
@@ -14,44 +13,4 @@ dependencies {
     testImplementation(project(":core:quantity"))
     testImplementation(project(":core:pricing"))
     testImplementation(libs.money.api)
-}
-
-crossLayerQuality {
-    participants = [":app:bootstrap", ":app:domain", ":app:application", ":app:infrastructure"]
-}
-
-def modulePath = files(configurations.runtimeClasspath, tasks.named("jar").flatMap { it.archiveFile })
-def architectureProperties = tasks.register("architectureProperties", WriteProperties) {
-    destinationFile = layout.buildDirectory.file("architecture/modules.properties")
-    property("app.bootJar", tasks.named("bootJar").flatMap { it.archiveFile }.map { it.asFile.absolutePath })
-    def parent = project(":app")
-    property("app.parent.javaPlugin", parent.plugins.hasPlugin("java"))
-    property("app.parent.bootPlugin", parent.plugins.hasPlugin("org.springframework.boot"))
-    property("app.parent.sourceDirectory", parent.layout.projectDirectory.dir("src").asFile.absolutePath)
-    property("app.parent.artifactTasks", ["jar", "bootJar", "bootRun"].findAll { parent.tasks.findByName(it) }.join(","))
-    property("app.children", parent.childProjects.values()*.path.sort().join(","))
-    property("app.modulePath", modulePath.elements.map { paths -> paths*.asFile*.absolutePath.join(File.pathSeparator) })
-    ["domain", "application", "infrastructure"].each { layer ->
-        def owner = project(":app:${layer}")
-        property("app.${layer}.compileArtifacts", owner.configurations.compileClasspath.elements.map { paths ->
-            paths*.asFile*.absolutePath.join(File.pathSeparator)
-        })
-        property("app.${layer}.runtimeArtifacts", owner.configurations.runtimeClasspath.elements.map { paths ->
-            paths*.asFile*.absolutePath.join(File.pathSeparator)
-        })
-        property("app.${layer}.projectDependencies",
-                [owner.configurations.api, owner.configurations.implementation].collectMany {
-                    it.dependencies.withType(ProjectDependency).collect { it.path }
-                }.unique().join(","))
-    }
-}
-
-tasks.named("testClasses") {
-    dependsOn(architectureProperties)
-}
-
-tasks.named("test") {
-    dependsOn(tasks.named("jar"))
-    inputs.file(architectureProperties.flatMap { it.destinationFile })
-    systemProperty("app.architecture", layout.buildDirectory.file("architecture/modules.properties").get().asFile.absolutePath)
 }

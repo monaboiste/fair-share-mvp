@@ -143,6 +143,32 @@ class SettlementEventCodecSpec extends Specification {
         "allocation/entries/0/weight" | "float integer"    | "3.0"
     }
 
+    def "a #type fact rejects an invalid #scalar string instead of inventing a value"() {
+        given:
+        def fixtures = mapper.readTree(fixturesJson)
+        def document = fixtures.find { it.get("type").textValue() == type }.get("payload").deepCopy()
+        def fields = path.split("/")
+        def parent = document
+        fields.dropRight(1).each { parent = parent.get(it) }
+        parent.put(fields.last(), value)
+
+        when:
+        new SettlementEventCodec().decode(type, 1, document.toString())
+
+        then:
+        thrown(IllegalArgumentException)
+
+        where:
+        type                     | scalar          | path                    | value
+        "ExpenseRecorded"        | "UUID"          | "expenseId"             | "not-a-uuid"
+        "ExpenseRecorded"        | "date"          | "incurredOn"            | "2026-02-29"
+        "ExpenseRecorded"        | "amount"        | "originalAmount/amount" | "NaN"
+        "ExpenseRecorded"        | "Exchange Rate" | "exchangeRate/value"    | "one"
+        "SettlementOpened"       | "currency"      | "currency"              | "NOT_A_CURRENCY"
+        "ExchangeRateConfigured" | "timestamp"     | "version/definedAt"     | "yesterday"
+        "ExchangeRateConfigured" | "validity"      | "version/from"          | "2026-13-01T00:00"
+    }
+
     def "nullable validity endpoints remain present and time strings retain their exact format"() {
         given:
         def codec = new SettlementEventCodec()
