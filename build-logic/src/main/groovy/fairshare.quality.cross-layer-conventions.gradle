@@ -1,7 +1,8 @@
-def quality = extensions.create("crossLayerQuality", CrossLayerQualityExtension)
+def participants = objects.listProperty(String)
+extensions.add("crossLayerQualityParticipants", participants)
 
 gradle.projectsEvaluated {
-    def members = quality.participants.get().collect { project(it) }
+    def members = participants.get().collect { project(it) }
     def scenarioTests = members.collect { it.tasks.named("test") }
     def scenarioSources = members.collect { it.sourceSets.test }
     def scenarioProperties = scenarioTests.collectMany { test ->
